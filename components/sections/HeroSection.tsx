@@ -1,5 +1,7 @@
 import { WavePlateMesh } from "@/components/hero/WavePlateMesh";
 import { Button } from "@/components/ui/Button";
+import { StressNetwork } from "../hero/StressNetwork";
+import { PolygonSphere } from "../hero/PolygonSphere";
 
 export function HeroSection() {
   return (

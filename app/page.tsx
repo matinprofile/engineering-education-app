@@ -33,15 +33,19 @@ const adhesiveQuickLinks = [
 
 const joiningFormingQuickLinks = [
   { label: "Manufacturing", href: "/manufacturing", icon: iconManufacturing },
-  { label: "Design", href: "/design", icon: iconDesign },
+  { label: "Design", href: "https://clinching-app-git-master-mahmoud-matins-projects.vercel.app/projects/clinching", icon: iconDesign },
 ];
 
 const weldingQuickLinks = [
   { label: "Manufacturing", href: "/manufacturing", icon: iconManufacturing },
 ];
 
-const designOnlyQuickLinks = [
-  { label: "Design", href: "/design", icon: iconDesign },
+const materialScienceQuickLinks = [
+  { label: "Design", href: "https://engineering-virtual-learning-platfo.vercel.app/en/platmat", icon: iconDesign },
+];
+
+const technicalDrawingQuickLinks = [
+  { label: "Design", href: "https://engineering-virtual-learning-platfo.vercel.app/en/technical-drawing", icon: iconDesign },
 ];
 
 export default function Home() {
@@ -62,9 +66,17 @@ export default function Home() {
               {...category}
               footer={
                 (category.slug === "adhesive-bonding" || category.slug === "joining-forming" || category.slug === "welding" || category.slug === "material-science" || category.slug === "technical-drawing") ? (
-                  <div className="flex items-center gap-3">
-                    {(category.slug === "adhesive-bonding" ? adhesiveQuickLinks : category.slug === "joining-forming" ? joiningFormingQuickLinks : category.slug === "welding" ? weldingQuickLinks : designOnlyQuickLinks).map((link) => (
-                      <div key={link.label} className="flex flex-col items-center gap-1">
+                  <div className="flex items-start gap-2">
+                    {(category.slug === "adhesive-bonding"
+                      ? adhesiveQuickLinks
+                      : category.slug === "joining-forming"
+                        ? joiningFormingQuickLinks
+                        : category.slug === "welding"
+                          ? weldingQuickLinks
+                          : category.slug === "material-science"
+                            ? materialScienceQuickLinks
+                            : technicalDrawingQuickLinks).map((link) => (
+                      <div key={link.label} className="flex w-20 flex-col items-center gap-1 text-center">
                         <a
                           href={link.href}
                           target="_blank"
@@ -74,7 +86,7 @@ export default function Home() {
                         >
                           {link.icon}
                         </a>
-                        <span className="text-[10px] uppercase tracking-wide text-muted/85">
+                        <span className="min-h-8 text-[10px] uppercase leading-4 tracking-wide text-muted/85">
                           {link.label}
                         </span>
                       </div>
