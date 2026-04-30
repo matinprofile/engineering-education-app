@@ -42,6 +42,7 @@ const weldingQuickLinks = [
 
 const materialScienceQuickLinks = [
   { label: "Design", href: "https://engineering-virtual-learning-platfo.vercel.app/en/platmat", icon: iconDesign },
+  { label: "YouTube", href: "https://www.youtube.com/watch?v=jvwq5BT4R1g&list=PLZScjc7Bq4IXKqd24t4e85N9PsTDVhS9o", icon: iconYouTube },
 ];
 
 const technicalDrawingQuickLinks = [
@@ -56,7 +57,7 @@ export default function Home() {
       {/* Core Sections */}
       <SectionWrapper
         id="categories"
-        title="Categories"
+        title=""
         subtitle=""
       >
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">

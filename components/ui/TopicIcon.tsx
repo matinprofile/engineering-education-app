@@ -51,18 +51,26 @@ function WeldingIcon() {
 
 function MaterialScienceIcon() {
   return (
-    <SvgFrame>
-      <circle cx="22" cy="22" r="4" stroke="currentColor" strokeWidth="2.25" />
-      <circle cx="42" cy="22" r="4" stroke="currentColor" strokeWidth="2.25" />
-      <circle cx="22" cy="42" r="4" stroke="currentColor" strokeWidth="2.25" />
-      <circle cx="42" cy="42" r="4" stroke="currentColor" strokeWidth="2.25" />
-      <path d="M26 22H38" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" />
-      <path d="M22 26V38" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" />
-      <path d="M42 26V38" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" />
-      <path d="M26 42H38" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" />
-      <path d="M25 25L39 39" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" />
-      <path d="M39 25L25 39" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" />
-    </SvgFrame>
+    <div className="h-full w-full rounded-xl border border-[color:var(--border)] bg-white p-1">
+      <svg
+        viewBox="14 14 36 36"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        className="h-full w-full"
+        aria-hidden="true"
+      >
+        <circle cx="22" cy="22" r="4" stroke="currentColor" strokeWidth="2.25" />
+        <circle cx="42" cy="22" r="4" stroke="currentColor" strokeWidth="2.25" />
+        <circle cx="22" cy="42" r="4" stroke="currentColor" strokeWidth="2.25" />
+        <circle cx="42" cy="42" r="4" stroke="currentColor" strokeWidth="2.25" />
+        <path d="M26 22H38" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" />
+        <path d="M22 26V38" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" />
+        <path d="M42 26V38" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" />
+        <path d="M26 42H38" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" />
+        <path d="M25 25L39 39" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" />
+        <path d="M39 25L25 39" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" />
+      </svg>
+    </div>
   );
 }
 
