@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de análise por ultrassons (A-Scan) de juntas soldadas</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        /* Estilos personalizados */
+        .texture-metal {
+            background-image: url('https://www.transparenttextures.com/patterns/brushed-alum.png');
+        }
+        body {
+            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+        /* Cursor personalizado */
+        .cursor-probe {
+            cursor: none; 
+        }
+        /* Animação da sonda */
+        @keyframes subtle-pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+            50% { box-shadow: 0 0 4px 2px rgba(16, 185, 129, 0.7); }
+        }
+        #ut-probe {
+            animation: subtle-pulse 2s infinite;
+        }
+        /* Canvas background */
+        #a-scan-canvas {
+            background-color: #1f2937; /* Gray-800 */
+            border: 1px solid #4b5563; /* Gray-600 */
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-900 text-slate-100 flex flex-col items-center p-4 sm:p-6 selection:bg-emerald-500/30">
+
+    <header class="w-full max-w-7xl mb-8 flex flex-col md:flex-row items-center justify-between gap-6 border-b border-slate-800 pb-6">
+        
+        <div class="flex-shrink-0">
+            <a href="https://lucasgroup.pt/" target="_blank" title="Visitar Lucas Group">
+                <img src="logo.jpg" alt="Lucas Group Logo" class="w-[181px] h-[173px] object-contain bg-white/5 rounded-lg border border-slate-700 hover:opacity-90 transition-opacity">
+            </a>
+        </div>
+
+        <div class="flex-grow text-center md:text-left md:pl-10">
+            <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight text-emerald-400 flex items-center justify-center md:justify-start gap-3">
+                <i data-lucide="scan" class="w-10 h-10"></i>
+                Simulador de análise por ultrassons (A-Scan) de juntas soldadas
+            </h1>
+            <p class="text-slate-400 mt-2 text-lg">Demonstração interativa multi-defeito</p>
+            <p class="text-slate-500 text-sm mt-1">Mova a sonda sobre a junta soldada para visualizar a resposta.</p>
+        </div>
+    </header>
+
+    <main class="w-full max-w-7xl bg-slate-800 rounded-xl overflow-hidden shadow-2xl border border-slate-700 flex flex-col lg:flex-row h-auto min-h-[500px]">
+        
+        <div id="viewport-container" class="relative w-full lg:w-1/2 h-96 lg:h-auto bg-black group select-none overflow-hidden cursor-probe z-10" onmouseleave="handleLeave()">
+            
+            <div class="absolute inset-0 pointer-events-none bg-neutral-300 flex items-center justify-center shadow-inner">
+                <div class="absolute inset-0 opacity-20 texture-metal"></div>
+                
+                <div class="relative w-full h-32 flex items-center justify-center border-y-4 border-neutral-400/50">
+                    <div class="absolute w-full h-24 bg-neutral-500/80 shadow-inner shadow-neutral-700"></div>
+                    
+                    <div id="defect-markers" class="absolute inset-0 pointer-events-none"></div>
+                </div>
+            </div>
+
+            <div id="ut-probe" class="absolute w-14 h-14 bg-emerald-500/50 rounded-lg pointer-events-none z-30 flex items-center justify-center border-2 border-emerald-400" style="transform: translate(-50%, -50%); top: 50%; display: none;">
+                <i data-lucide="chevrons-down" class="w-8 h-8 text-white"></i>
+            </div>
+
+            <div id="hover-prompt" class="absolute bottom-6 left-1/2 -translate-x-1/2 bg-black/70 text-white px-6 py-3 rounded-full text-sm backdrop-blur-sm pointer-events-none flex items-center gap-2 transition-opacity duration-200 opacity-100 whitespace-nowrap z-20">
+                <i data-lucide="mouse-pointer-2" class="w-4 h-4 animate-bounce"></i>
+                <span class="font-medium">Mova o cursor sobre a junta para inspecionar</span>
+            </div>
+        </div>
+
+        <div class="w-full lg:w-1/2 bg-slate-900 border-l border-slate-700 p-6 flex flex-col">
+            
+            <div class="mb-4 border-b border-slate-800 pb-2">
+                <h3 class="text-slate-400 text-sm font-bold uppercase tracking-wider flex items-center gap-2">
+                    <i data-lucide="activity" class="w-4 h-4"></i> Sensor ultrassónico
+                </h3>
+            </div>
+
+            <div class="flex-grow grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                <div class="flex flex-col">
+                    <div class="relative flex-grow min-h-[250px] bg-slate-950 rounded-lg border border-slate-700 p-1 shadow-inner">
+                        <canvas id="a-scan-canvas" width="300" height="280" class="w-full h-full rounded"></canvas>
+                        
+                        <div class="absolute bottom-1 left-2 right-2 flex justify-between text-[10px] text-slate-500 font-mono pointer-events-none">
+                            <span>0</span>
+                            <span>5</span>
+                            <span>10</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-between text-xs text-slate-400 mt-2 px-1 font-mono">
+                        <span>Superfície</span>
+                        <span>Fundo (BW)</span>
+                    </div>
+                </div>
+
+                <div class="flex flex-col justify-center">
+                    <div id="defect-legend" class="bg-slate-800/50 rounded-lg border border-slate-700 p-4 h-full">
+                        <h4 class="text-sm font-semibold text-emerald-400 mb-4 flex items-center gap-2">
+                            <i data-lucide="list" class="w-4 h-4"></i>
+                            Legenda de Sinais
+                        </h4>
+                        
+                        <div class="space-y-4">
+                            <div class="group border-l-2 border-red-400 pl-3">
+                                <p class="text-xs text-red-400 font-bold mb-1">POS: 30% (Falta de Fusão)</p>
+                                <p class="text-xs text-slate-300 leading-relaxed">
+                                    Amplitude média-alta. Base do eco moderadamente larga.
+                                </p>
+                            </div>
+
+                            <div class="group border-l-2 border-red-300 pl-3">
+                                <p class="text-xs text-red-300 font-bold mb-1">POS: 50% (Fissura/Crack)</p>
+                                <p class="text-xs text-slate-300 leading-relaxed">
+                                    Amplitude crítica (Muito Alta). Eco muito fino e aguçado.
+                                </p>
+                            </div>
+
+                            <div class="group border-l-2 border-yellow-300 pl-3">
+                                <p class="text-xs text-yellow-300 font-bold mb-1">POS: 80% (Porosidade)</p>
+                                <p class="text-xs text-slate-300 leading-relaxed">
+                                    Amplitude baixa. Eco "gordo" e irregular (ruído volumétrico).
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-4 border-t border-slate-700">
+                             <p class="text-[10px] text-slate-500 italic">
+                                * Nota: Sinais de defeito causam queda do eco de fundo (Atenuação).
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="mt-8 text-center text-slate-600 text-xs">
+        <p>&copy; 2025 - www.lucasgroup.pt - </p>
+    </footer>
+
+    <script>
+        // --- CONSTANTS ---
+        const DEFECTS = [
+            {
+                id: 'lof',
+                centerX: 30,          // Posição horizontal 30%
+                reflectionTime: 0.30, // Profundidade 30%
+                maxAmplitude: 0.70,   // Amplitude Máxima Média-Alta
+                spread: 12,           // Largura física
+                peakWidth: 0.06,      // Largura do pico no A-Scan
+                color: '#f87171'      // Red-400
+            },
+            {
+                id: 'crack',
+                centerX: 65,          // Posição horizontal 65%
+                reflectionTime: 0.50, // Profundidade 50%
+                maxAmplitude: 0.95,   // Amplitude Máxima Muito Alta
+                spread: 8,            // Largura física menor
+                peakWidth: 0.03,      // Largura do pico no A-Scan
+                color: '#fca5a5'      // Red-300
+            },
+            {
+                id: 'porosity',
+                centerX: 85,          // Posição horizontal 85%
+                reflectionTime: 0.80, // Profundidade 80%
+                maxAmplitude: 0.40,   // Amplitude Máxima Baixa
+                spread: 20,           // Largura física maior
+                peakWidth: 0.10,      // Largura do pico no A-Scan
+                color: '#fde047'      // Yellow-300
+            }
+        ];
+
+        const BACKWALL_TIME = 0.95; 
+
+        // --- STATE ---
+        let currentDefectAmplitudes = DEFECTS.reduce((acc, def) => {
+            acc[def.id] = 0;
+            return acc;
+        }, {});
+        let currentMaxAmplitude = 0; 
+
+        // --- DOM ELEMENTS ---
+        let canvas, ctx;
+        const els = {
+            viewport: document.getElementById('viewport-container'),
+            utProbe: document.getElementById('ut-probe'),
+            aScanCanvas: document.getElementById('a-scan-canvas'),
+            hoverPrompt: document.getElementById('hover-prompt'),
+            defectMarkers: document.getElementById('defect-markers'),
+        };
+
+        // --- INITIALIZATION ---
+        function init() {
+            lucide.createIcons();
+            
+            canvas = els.aScanCanvas;
+            ctx = canvas.getContext('2d');
+            
+            // Events
+            els.viewport.addEventListener('mousemove', handleMove);
+            els.viewport.addEventListener('touchmove', (e) => handleMove(e.touches[0]));
+            els.viewport.addEventListener('mouseenter', handleEnter);
+
+            drawDefectMarkers();
+            requestAnimationFrame(drawAScanLoop);
+        }
+
+        function drawDefectMarkers() {
+            els.defectMarkers.innerHTML = '';
+            DEFECTS.forEach(defect => {
+                const marker = document.createElement('div');
+                marker.className = 'absolute top-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-none opacity-60';
+                marker.style.left = `${defect.centerX}%`;
+                marker.innerHTML = `
+                    <div class="w-16 h-1" style="background-color: ${defect.color}; box-shadow: 0 0 8px 1px ${defect.color};"></div>
+                `;
+                els.defectMarkers.appendChild(marker);
+            });
+        }
+
+        // --- DRAWING LOOP ---
+        function drawAScanLoop() {
+            drawAScan();
+            requestAnimationFrame(drawAScanLoop);
+        }
+
+        function drawAScan() {
+            const w = canvas.width;
+            const h = canvas.height;
+            const midH = h / 2;
+            const maxAmp = currentMaxAmplitude;
+
+            // Clear
+            ctx.fillStyle = '#020617'; // Darker background
+            ctx.fillRect(0, 0, w, h);
+            
+            // Grid
+            ctx.strokeStyle = '#1e293b'; 
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            
+            // Baseline
+            ctx.moveTo(0, midH);
+            ctx.lineTo(w, midH);
+
+            // Vertical Grid
+            [0.25, 0.5, 0.75].forEach(t => {
+                ctx.moveTo(w * t, 0);
+                ctx.lineTo(w * t, h);
+            });
+            ctx.stroke();
+
+            // Initial Pulse
+            const initialPulseAmp = 0.9;
+            const initialPulseTime = 0.05;
+
+            // Trace
+            ctx.strokeStyle = '#34d399'; // Emerald-400
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, midH);
+            
+            const numPoints = 250; // Increased resolution slightly
+            const backwallIndex = Math.floor(BACKWALL_TIME * numPoints);
+            
+            let currentPeakAmp = 0;
+            let peakX = 0;
+            let peakY = 0;
+            let peakColor = '#34d399';
+
+            for (let i = 1; i <= numPoints; i++) {
+                const t = i / numPoints;
+                let amplitude = 0;
+                
+                // Initial Pulse
+                if (t <= initialPulseTime) {
+                    amplitude = initialPulseAmp * Math.sin(t / initialPulseTime * Math.PI);
+                } 
+                
+                // Defects
+                DEFECTS.forEach(defect => {
+                    const defectIndex = Math.floor(defect.reflectionTime * numPoints);
+                    // Check if we are in the time-window of this defect
+                    if (i >= defectIndex - (defect.peakWidth * numPoints) && i <= defectIndex + (defect.peakWidth * numPoints)) {
+                         // Gaussian calc
+                         const center = defectIndex;
+                         const sigma = (defect.peakWidth * numPoints) / 3; 
+                         const val = i - center;
+                         const peakShape = Math.exp(-(val * val) / (2 * sigma * sigma));
+                         
+                         const dynAmp = currentDefectAmplitudes[defect.id];
+                         const thisAmp = dynAmp * peakShape;
+                         
+                         amplitude += thisAmp;
+
+                         if (thisAmp > 0.1 && thisAmp > currentPeakAmp) {
+                             currentPeakAmp = thisAmp;
+                             peakColor = defect.color;
+                             peakX = t * w;
+                             peakY = midH - amplitude * midH;
+                         }
+                    }
+                });
+
+                // Backwall
+                if (i >= backwallIndex - 10 && i <= backwallIndex + 10) {
+                     const center = backwallIndex;
+                     const sigma = 5;
+                     const val = i - center;
+                     const peakShape = Math.exp(-(val * val) / (2 * sigma * sigma));
+                     // Attenuation Logic:
+                     amplitude += 0.8 * peakShape * (1 - maxAmp * 0.7); 
+                }
+                
+                // Noise
+                amplitude += (Math.random() * 0.02); 
+                
+                // Clamp
+                amplitude = Math.min(1.2, Math.max(-0.2, amplitude));
+
+                const x = t * w;
+                const y = midH - amplitude * midH; 
+                ctx.lineTo(x, y);
+            }
+            
+            ctx.stroke();
+
+            // Draw Peak Dot
+            if (currentPeakAmp > 0.05) {
+                ctx.fillStyle = peakColor;
+                ctx.beginPath();
+                ctx.arc(peakX, peakY, 4, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // --- INTERACTION ---
+        function calculateProbeProximity(xPos, defect) {
+            const distance = Math.abs(xPos - defect.centerX);
+            const maxDistance = defect.spread / 2;
+            if (distance < maxDistance) {
+                return 1 - (distance / maxDistance);
+            }
+            return 0;
+        }
+
+        function handleMove(e) {
+            const rect = els.viewport.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            
+            // Limit probe inside
+            if (x < 0 || x > rect.width) return;
+
+            els.utProbe.style.left = `${x}px`;
+            
+            const xPosPercent = (x / rect.width) * 100;
+            let maxAmplitude = 0;
+
+            DEFECTS.forEach(defect => {
+                const proximity = calculateProbeProximity(xPosPercent, defect);
+                // Add jitter/noise for realism
+                let noise = Math.random() * 0.05;
+                let amplitude = (defect.maxAmplitude * proximity);
+                
+                if (amplitude > 0) amplitude += noise;
+
+                currentDefectAmplitudes[defect.id] = Math.min(1.0, Math.max(0, amplitude));
+
+                if (currentDefectAmplitudes[defect.id] > maxAmplitude) {
+                    maxAmplitude = currentDefectAmplitudes[defect.id];
+                }
+            });
+            
+            currentMaxAmplitude = maxAmplitude;
+        }
+
+        function handleEnter() {
+            els.utProbe.style.display = 'flex';
+            els.hoverPrompt.style.opacity = '0';
+        }
+        
+        function handleLeave() {
+            els.utProbe.style.display = 'none';
+            els.hoverPrompt.style.opacity = '1';
+            
+            // Reset
+            DEFECTS.forEach(defect => {
+                currentDefectAmplitudes[defect.id] = 0; 
+            });
+            currentMaxAmplitude = 0;
+        }
+
+        init();
+    </script>
+</body>
+</html>

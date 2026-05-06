@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Surface Roughness & Mechanical Interlocking</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #f3f4f6; }
+        #canvas-container { width: 100%; height: 100vh; position: absolute; top: 0; left: 0; z-index: 0; }
+        .ui-panel {
+            position: relative;
+            z-index: 10;
+            backdrop-filter: blur(8px);
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+        .instruction-box {
+            border-left: 4px solid #10b981; /* Emerald-500 */
+        }
+        /* Custom scrollbar for panel */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #888; border-radius: 3px; }
+    </style>
+</head>
+<body>
+
+    <!-- 3D Canvas -->
+    <div id="canvas-container"></div>
+
+    <!-- Main UI Overlay -->
+    <div class="absolute inset-0 pointer-events-none flex flex-col md:flex-row">
+        
+        <!-- Sidebar Controls (Left) -->
+        <div class="ui-panel pointer-events-auto w-full md:w-1/3 max-w-md h-full shadow-xl flex flex-col p-6 overflow-y-auto">
+            
+            <h1 class="text-2xl font-bold text-slate-800 mb-2">Mechanical Interlocking</h1>
+            <p class="text-sm text-slate-600 mb-6">Explore how surface texture orientation affects adhesive bond strength under shear loads.</p>
+
+            <!-- CONTROLS -->
+            <div id="controls-roughness" class="space-y-6">
+                <div class="instruction-box pl-4 bg-emerald-50 p-3 rounded-r-md">
+                    <h3 class="font-semibold text-emerald-800">Goal: Maximize Resistance</h3>
+                    <p class="text-xs text-emerald-700 mt-1">Select a sanding orientation to create surface grooves. Apply a shear load to see if the adhesive locks into the surface.</p>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Surface Preparation (Groove Orientation):</label>
+                    <select id="roughness-select" onchange="updateRoughnessPreview()" class="w-full p-2 border border-slate-300 rounded-md bg-white shadow-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                        <option value="parallel">Parallel to Load (0°)</option>
+                        <option value="perpendicular">Perpendicular to Load (90°)</option>
+                        <option value="crosshatch">Crosshatch (+/- 45°)</option>
+                    </select>
+                </div>
+
+                <div class="bg-slate-100 p-4 rounded-lg">
+                     <div class="flex justify-between items-center mb-2">
+                        <span class="text-xs font-uppercase font-bold text-slate-500">Load Direction</span>
+                        <div class="flex items-center space-x-1 text-emerald-600">
+                            <span class="text-xs font-bold">Shear Force (X-Axis)</span>
+                            <span class="text-lg">➜</span>
+                        </div>
+                    </div>
+                    <button id="action-roughness" onclick="runRoughnessSim()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg shadow-lg transform transition active:scale-95">
+                        Apply Load
+                    </button>
+                    <button onclick="resetScene()" class="w-full mt-2 py-2 text-slate-500 hover:text-slate-700 text-sm">Reset Simulation</button>
+                </div>
+
+                <!-- Results Output -->
+                <div id="result-roughness" class="hidden animate-fade-in transition-all duration-500">
+                    <h4 class="font-bold text-slate-800 border-b pb-1 mb-2">Structural Integrity Analysis</h4>
+                    <div id="roughness-feedback" class="text-sm text-slate-700 space-y-2 mb-3"></div>
+                    
+                    <div class="relative pt-1">
+                        <div class="flex mb-2 items-center justify-between">
+                            <div class="text-xs font-semibold text-slate-600">Bond Strength</div>
+                            <div class="text-xs font-bold text-slate-800" id="strength-val">0%</div>
+                        </div>
+                        <div class="overflow-hidden h-4 mb-4 text-xs flex rounded bg-slate-200">
+                            <div id="strength-bar" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-emerald-500 w-0 transition-all duration-1000"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- 3D Legend/Overlay (Bottom Right) -->
+        <div class="pointer-events-none absolute bottom-4 right-4 bg-black/60 backdrop-blur text-white p-4 rounded-lg text-xs max-w-xs shadow-lg border border-white/10">
+            <h4 class="font-bold border-b border-white/20 pb-1 mb-2">Visual Guide</h4>
+            <div class="space-y-1">
+                <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-slate-400 mr-2"></span> Substrate (Metal)</div>
+                <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-blue-600 mr-2"></span> Cured Adhesive</div>
+                <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-red-600 mr-2"></span> Stress Concentration</div>
+            </div>
+            <div class="mt-3 pt-2 border-t border-white/20">
+                <p><strong>Controls:</strong> Left Click (Rotate), Right Click (Pan), Scroll (Zoom)</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 3D ENGINE & STATE MANAGEMENT ---
+        let scene, camera, renderer;
+        let controls;
+        let time = 0;
+        let animationId;
+
+        // Simulation Objects
+        let substrateMesh, adhesiveBlock;
+        let selectedRoughness = 'parallel';
+        let isPulling = false;
+        
+        // Colors
+        const ADHESIVE_CURED_COLOR = 0x1d4ed8; // Strong Blue
+        const ADHESIVE_STRESS_COLOR = 0xdc2626; // Red
+        const METAL_COLOR = 0x94a3b8; // Slate 400
+
+        function init() {
+            // Scene Setup
+            const container = document.getElementById('canvas-container');
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xf3f4f6);
+            scene.fog = new THREE.Fog(0xf3f4f6, 10, 50);
+
+            // Camera
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+            camera.position.set(6, 5, 6); // Optimal angle to see grooves
+            camera.lookAt(0, 0, 0);
+
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            container.appendChild(renderer.domElement);
+
+            // Lights
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+
+            const mainLight = new THREE.DirectionalLight(0xffffff, 0.9);
+            mainLight.position.set(5, 10, 5);
+            mainLight.castShadow = true;
+            mainLight.shadow.mapSize.width = 1024;
+            mainLight.shadow.mapSize.height = 1024;
+            scene.add(mainLight);
+
+            // Fill light
+            const fillLight = new THREE.DirectionalLight(0xbfdbfe, 0.4);
+            fillLight.position.set(-5, 0, -5);
+            scene.add(fillLight);
+
+            // Controls
+            setupControls();
+
+            // Initial Load
+            loadRoughnessModule();
+
+            // Loop
+            animate();
+
+            // Resize Handler
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        // --- SCENE GENERATION ---
+
+        function clearScene() {
+            // Remove all meshes except lights
+            const toRemove = [];
+            scene.traverse((child) => {
+                if (child.isMesh) {
+                    toRemove.push(child);
+                }
+            });
+            toRemove.forEach(obj => scene.remove(obj));
+            
+            isPulling = false;
+            time = 0;
+
+            // UI Reset
+            document.getElementById('result-roughness').classList.add('hidden');
+            const btn = document.getElementById('action-roughness');
+            btn.disabled = false;
+            btn.innerText = "Apply Load";
+            btn.classList.remove('opacity-50', 'cursor-not-allowed');
+            document.getElementById('strength-bar').style.width = '0%';
+        }
+
+        function loadRoughnessModule() {
+            clearScene();
+
+            // 1. Create Substrate with Grooves
+            // High segment count for detailed displacement
+            const planeGeo = new THREE.PlaneGeometry(8, 4, 200, 100); 
+            planeGeo.rotateX(-Math.PI / 2); // Lay flat
+
+            // Apply displacement logic
+            updateRoughnessGeometry(planeGeo, selectedRoughness);
+
+            const planeMat = new THREE.MeshStandardMaterial({ 
+                color: METAL_COLOR, 
+                roughness: 0.5, 
+                metalness: 0.7,
+                side: THREE.DoubleSide
+            });
+            substrateMesh = new THREE.Mesh(planeGeo, planeMat);
+            substrateMesh.receiveShadow = true;
+            substrateMesh.castShadow = true;
+            scene.add(substrateMesh);
+
+            // 2. Adhesive Block (Cured)
+            // This represents the adhesive that has filled the grooves and cured
+            const blockGeo = new THREE.BoxGeometry(3, 1, 2);
+            const blockMat = new THREE.MeshPhysicalMaterial({ 
+                color: ADHESIVE_CURED_COLOR, 
+                transmission: 0.3, 
+                opacity: 0.9, 
+                transparent: true,
+                roughness: 0.2,
+                clearcoat: 1.0
+            });
+            adhesiveBlock = new THREE.Mesh(blockGeo, blockMat);
+            adhesiveBlock.position.set(0, 0.5, 0); 
+            adhesiveBlock.castShadow = true;
+            
+            scene.add(adhesiveBlock);
+            
+            // 3. Arrow helper for load direction (Visual only)
+            const dir = new THREE.Vector3(1, 0, 0);
+            const origin = new THREE.Vector3(-2.5, 1.5, 0);
+            const length = 2;
+            const hex = 0x10b981; // Emerald
+            const arrowHelper = new THREE.ArrowHelper(dir, origin, length, hex, 0.5, 0.3);
+            scene.add(arrowHelper);
+        }
+
+        function updateRoughnessGeometry(geometry, type) {
+            const posAttribute = geometry.attributes.position;
+            const vertex = new THREE.Vector3();
+
+            // Parameters for grooves
+            const frequency = 6.0;
+            const amplitude = 0.15;
+
+            for (let i = 0; i < posAttribute.count; i++) {
+                vertex.fromBufferAttribute(posAttribute, i);
+                
+                let height = 0;
+                
+                // Load is applied along the X axis
+                
+                if (type === 'parallel') {
+                    // Grooves run along X (Load direction). 
+                    // Height varies by Z (cross-section).
+                    // sin(z) creates ridges running along X.
+                    height = Math.sin(vertex.z * frequency * 3) * amplitude;
+                } else if (type === 'perpendicular') {
+                    // Grooves run along Z (Perpendicular to Load X).
+                    // Height varies by X.
+                    // sin(x) creates ridges blocking X movement.
+                    height = Math.sin(vertex.x * frequency * 3) * amplitude;
+                } else if (type === 'crosshatch') {
+                    // +45 / -45 degrees
+                    // Interference pattern
+                    const val1 = Math.sin((vertex.x + vertex.z) * frequency * 2);
+                    const val2 = Math.sin((vertex.x - vertex.z) * frequency * 2);
+                    height = (val1 + val2) * (amplitude * 0.6); // Slightly lower amp for combined wave
+                }
+
+                // Apply height to Y axis
+                vertex.y = height; 
+                
+                posAttribute.setXYZ(i, vertex.x, vertex.y, vertex.z);
+            }
+            
+            geometry.computeVertexNormals();
+            geometry.attributes.position.needsUpdate = true;
+        }
+
+
+        // --- ANIMATION LOOP ---
+
+        function animate() {
+            requestAnimationFrame(animate);
+            time += 0.05;
+
+            animateRoughness();
+            renderer.render(scene, camera);
+        }
+
+        function animateRoughness() {
+            if (isPulling) {
+                let moveSpeed = 0;
+                let limit = 10;
+                let wobble = 0; // Simulate struggle/vibration
+
+                if (selectedRoughness === 'parallel') {
+                    // Fails easily, slides right off
+                    moveSpeed = 0.08;
+                    limit = 6; // slides off screen
+                } else if (selectedRoughness === 'perpendicular') {
+                    // Locks mechanically
+                    // Initial slight movement (taking up slack), then stop
+                    moveSpeed = (adhesiveBlock.position.x < 0.15) ? 0.02 : 0;
+                    limit = 0.15; 
+                    // Add vibration to show stress
+                    wobble = Math.sin(time * 30) * 0.005; 
+                } else {
+                    // Crosshatch (Best lock)
+                    // Very rigid
+                    moveSpeed = (adhesiveBlock.position.x < 0.05) ? 0.01 : 0;
+                    limit = 0.05;
+                    wobble = Math.sin(time * 40) * 0.002;
+                }
+
+                if (adhesiveBlock.position.x < limit) {
+                    adhesiveBlock.position.x += moveSpeed;
+                }
+                
+                // Apply wobble
+                adhesiveBlock.position.y = 0.5 + wobble;
+
+                // Visual Feedback: Turn Red under stress
+                // If it's parallel, it just slides (no stress). 
+                // If it's perpendicular/crosshatch, it stops (stress builds).
+                if (selectedRoughness !== 'parallel' && adhesiveBlock.position.x >= limit - 0.01) {
+                     adhesiveBlock.material.color.lerp(new THREE.Color(ADHESIVE_STRESS_COLOR), 0.05);
+                     adhesiveBlock.material.emissive.lerp(new THREE.Color(0x550000), 0.05);
+                }
+            }
+        }
+
+
+        // --- UI & INTERACTION ---
+
+        function updateRoughnessPreview() {
+            if(isPulling) return; // Lock change during sim
+            selectedRoughness = document.getElementById('roughness-select').value;
+            loadRoughnessModule();
+        }
+
+        function runRoughnessSim() {
+            if (isPulling) return;
+            isPulling = true;
+            
+            const btn = document.getElementById('action-roughness');
+            btn.disabled = true;
+            btn.innerText = "Applying Shear Load...";
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
+
+            // Delay results slightly to let animation start
+            setTimeout(() => {
+                showRoughnessResults();
+            }, 1500);
+        }
+
+        function showRoughnessResults() {
+            const resDiv = document.getElementById('result-roughness');
+            const feedDiv = document.getElementById('roughness-feedback');
+            const bar = document.getElementById('strength-bar');
+            const val = document.getElementById('strength-val');
+            
+            resDiv.classList.remove('hidden');
+
+            if (selectedRoughness === 'parallel') {
+                feedDiv.innerHTML = `
+                    <p class="text-red-600 font-bold mb-1">❌ Bond Failure</p>
+                    <p>The ridges are aligned with the load direction. The adhesive simply slides along the grooves (channels) like a train on tracks. <br><span class="italic text-xs">Result: Zero mechanical interlock.</span></p>
+                `;
+                bar.style.width = '10%';
+                bar.className = "shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-red-500 w-0 transition-all duration-1000";
+                val.innerText = "Low";
+            } else if (selectedRoughness === 'perpendicular') {
+                feedDiv.innerHTML = `
+                    <p class="text-emerald-600 font-bold mb-1">✅ Strong Mechanical Interlock</p>
+                    <p>The ridges are perpendicular to the load, acting like speed bumps or walls. The cured adhesive physically cannot slide without shearing off the metal ridges.<br><span class="italic text-xs">Result: High strength.</span></p>
+                `;
+                bar.style.width = '85%';
+                bar.className = "shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-emerald-500 w-0 transition-all duration-1000";
+                val.innerText = "High";
+            } else {
+                feedDiv.innerHTML = `
+                    <p class="text-blue-600 font-bold mb-1">🏆 Optimal Interlock (Crosshatch)</p>
+                    <p>The +/- 45° pattern creates a diamond grid. This provides locking against loads in <strong>multiple directions</strong>, not just one. It offers the most reliable bond area and stress distribution.</p>
+                `;
+                bar.style.width = '100%';
+                bar.className = "shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-600 w-0 transition-all duration-1000";
+                val.innerText = "Maximum";
+            }
+        }
+
+        function resetScene() {
+            loadRoughnessModule();
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // --- CONTROLS ---
+        let isDragging = false;
+        let previousMousePosition = { x: 0, y: 0 };
+        let spherical = new THREE.Spherical();
+        let target = new THREE.Vector3(0,0,0);
+
+        function setupControls() {
+            const dom = renderer.domElement;
+            
+            dom.addEventListener('mousedown', (e) => { isDragging = true; });
+            dom.addEventListener('mouseup', (e) => { isDragging = false; });
+            
+            dom.addEventListener('mousemove', (e) => {
+                const deltaMove = {
+                    x: e.offsetX - previousMousePosition.x,
+                    y: e.offsetY - previousMousePosition.y
+                };
+
+                if(isDragging) {
+                    const v = new THREE.Vector3().copy(camera.position).sub(target);
+                    spherical.setFromVector3(v);
+                    
+                    spherical.theta -= deltaMove.x * 0.01;
+                    spherical.phi -= deltaMove.y * 0.01;
+                    spherical.phi = Math.max(0.1, Math.min(Math.PI / 2 - 0.1, spherical.phi));
+                    
+                    v.setFromSpherical(spherical);
+                    camera.position.copy(target).add(v);
+                    camera.lookAt(target);
+                }
+
+                previousMousePosition = {
+                    x: e.offsetX,
+                    y: e.offsetY
+                };
+            });
+
+            dom.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                const v = new THREE.Vector3().copy(camera.position).sub(target);
+                let dist = v.length();
+                dist += e.deltaY * 0.01;
+                dist = Math.max(2, Math.min(20, dist));
+                
+                v.normalize().multiplyScalar(dist);
+                camera.position.copy(target).add(v);
+            });
+        }
+
+        // Start
+        init();
+
+    </script>
+</body>
+</html>

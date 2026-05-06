@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bonded Joint Failure Modes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #f3f4f6; }
+        #canvas-container { width: 100%; height: 100vh; position: absolute; top: 0; left: 0; z-index: 0; }
+        .ui-panel {
+            position: relative;
+            z-index: 10;
+            backdrop-filter: blur(8px);
+            background-color: rgba(255, 255, 255, 0.95);
+        }
+        .instruction-box {
+            border-left: 4px solid #3b82f6; /* Blue-500 */
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #888; border-radius: 3px; }
+        
+        /* Failure specific colors for UI accents */
+        .mode-adhesive { border-color: #ef4444; } /* Red */
+        .mode-cohesive-adh { border-color: #3b82f6; } /* Blue */
+        .mode-cohesive-sub { border-color: #10b981; } /* Emerald */
+    </style>
+</head>
+<body>
+
+    <!-- 3D Canvas -->
+    <div id="canvas-container"></div>
+
+    <!-- Main UI Overlay -->
+    <div class="absolute inset-0 pointer-events-none flex flex-col md:flex-row">
+        
+        <!-- Sidebar Controls (Left) -->
+        <div class="ui-panel pointer-events-auto w-full md:w-1/3 max-w-md h-full shadow-xl flex flex-col p-6 overflow-y-auto">
+            
+            <h1 class="text-2xl font-bold text-slate-800 mb-2">Joint Failure Modes</h1>
+            <p class="text-sm text-slate-600 mb-6">Interactive simulation of the three primary failure mechanisms in a single lap joint.</p>
+
+            <!-- CONTROLS -->
+            <div class="space-y-6">
+                
+                <div id="info-box" class="instruction-box pl-4 bg-blue-50 p-3 rounded-r-md transition-colors duration-300">
+                    <h3 id="info-title" class="font-semibold text-blue-800">Ready to Test</h3>
+                    <p id="info-desc" class="text-xs text-blue-700 mt-1">Select a failure mode below to visualize how the bond breaks under tension.</p>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-3">Select Failure Mode:</label>
+                    <div class="space-y-3">
+                        
+                        <button onclick="setMode('adhesive')" id="btn-adhesive" class="group w-full flex items-center p-3 border rounded-lg hover:bg-red-50 hover:border-red-400 transition bg-white shadow-sm text-left">
+                            <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center mr-3 text-red-600 font-bold group-hover:bg-red-200">A</div>
+                            <div>
+                                <div class="text-sm font-bold text-slate-800">Adhesive Failure</div>
+                                <div class="text-xs text-slate-500">Interfacial separation</div>
+                            </div>
+                        </button>
+
+                        <button onclick="setMode('cohesive-adh')" id="btn-cohesive-adh" class="group w-full flex items-center p-3 border rounded-lg hover:bg-blue-50 hover:border-blue-400 transition bg-white shadow-sm text-left">
+                            <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3 text-blue-600 font-bold group-hover:bg-blue-200">C1</div>
+                            <div>
+                                <div class="text-sm font-bold text-slate-800">Cohesive (Adhesive)</div>
+                                <div class="text-xs text-slate-500">Internal adhesive fracture</div>
+                            </div>
+                        </button>
+
+                        <button onclick="setMode('cohesive-sub')" id="btn-cohesive-sub" class="group w-full flex items-center p-3 border rounded-lg hover:bg-emerald-50 hover:border-emerald-400 transition bg-white shadow-sm text-left">
+                            <div class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center mr-3 text-emerald-600 font-bold group-hover:bg-emerald-200">C2</div>
+                            <div>
+                                <div class="text-sm font-bold text-slate-800">Cohesive (Substrate)</div>
+                                <div class="text-xs text-slate-500">Substrate material fracture</div>
+                            </div>
+                        </button>
+
+                    </div>
+                </div>
+
+                <div class="bg-slate-100 p-4 rounded-lg">
+                     <div class="flex justify-between items-center mb-2">
+                        <span class="text-xs font-uppercase font-bold text-slate-500">Force Application</span>
+                        <div class="flex items-center space-x-1 text-slate-700">
+                            <span class="text-xs font-bold">Tension</span>
+                            <span class="text-lg">↔</span>
+                        </div>
+                    </div>
+                    <button id="action-btn" onclick="triggerFailure()" disabled class="w-full py-3 bg-slate-400 text-white font-bold rounded-lg shadow-none cursor-not-allowed transition-all">
+                        Select a Mode
+                    </button>
+                    <button onclick="resetScene()" class="w-full mt-2 py-2 text-slate-500 hover:text-slate-700 text-sm">Reset Joint</button>
+                </div>
+
+                <!-- Analysis Panel -->
+                <div id="result-panel" class="hidden animate-fade-in border-t pt-4">
+                    <h4 class="font-bold text-slate-800 mb-2">Failure Analysis</h4>
+                    <div id="result-text" class="text-sm text-slate-700 space-y-2"></div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- 3D Legend/Overlay (Bottom Right) -->
+        <div class="pointer-events-none absolute bottom-4 right-4 bg-black/60 backdrop-blur text-white p-4 rounded-lg text-xs max-w-xs shadow-lg border border-white/10">
+            <h4 class="font-bold border-b border-white/20 pb-1 mb-2">Visual Legend</h4>
+            <div class="space-y-1">
+                <div class="flex items-center"><span class="w-3 h-3 rounded-sm bg-slate-400 mr-2"></span> Substrates (Aluminium)</div>
+                <div class="flex items-center"><span class="w-3 h-3 rounded-sm bg-blue-600 mr-2"></span> Adhesive Layer</div>
+                <div class="flex items-center"><span class="w-3 h-3 rounded-sm bg-white border border-gray-500 mr-2"></span> Fracture Surface</div>
+            </div>
+            <div class="mt-3 pt-2 border-t border-white/20">
+                <p><strong>Mouse:</strong> Left (Rotate), Right (Pan), Scroll (Zoom)</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- THREE.JS SETUP ---
+        let scene, camera, renderer, controls;
+        let animationId;
+        let isSimulating = false;
+        let currentMode = null;
+        
+        // Scene Objects
+        const objects = {
+            bottomSubstrate: null,
+            topSubstrateFull: null,
+            topSubstrateBrokenBase: null, // The part that stays in substrate failure
+            topSubstrateBrokenFly: null,  // The part that flies away in substrate failure
+            adhesiveFull: null,
+            adhesiveTopHalf: null,
+            adhesiveBottomHalf: null
+        };
+
+        // Material Constants
+        const MAT_METAL = new THREE.MeshStandardMaterial({ 
+            color: 0x94a3b8, 
+            roughness: 0.4, 
+            metalness: 0.8 
+        });
+        const MAT_ADHESIVE = new THREE.MeshPhysicalMaterial({ 
+            color: 0x2563eb, 
+            roughness: 0.2, 
+            transmission: 0.2, 
+            opacity: 0.9, 
+            transparent: true 
+        });
+        const MAT_FRACTURE_ADHESIVE = new THREE.MeshStandardMaterial({
+            color: 0x60a5fa, // Lighter blue
+            roughness: 1.0, // Very rough
+            metalness: 0.0
+        });
+        const MAT_FRACTURE_METAL = new THREE.MeshStandardMaterial({
+            color: 0xe2e8f0, // Lighter grey/white
+            roughness: 0.9,
+            metalness: 0.3
+        });
+
+        function init() {
+            const container = document.getElementById('canvas-container');
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xf3f4f6);
+            scene.fog = new THREE.Fog(0xf3f4f6, 15, 60);
+
+            camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 100);
+            camera.position.set(15, 10, 15);
+            camera.lookAt(0, 0, 0);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            container.appendChild(renderer.domElement);
+
+            // Lights
+            const ambient = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambient);
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            dirLight.position.set(5, 10, 5);
+            dirLight.castShadow = true;
+            scene.add(dirLight);
+            const backLight = new THREE.DirectionalLight(0xffffff, 0.4);
+            backLight.position.set(-5, 2, -5);
+            scene.add(backLight);
+
+            // Controls
+            setupControls();
+            
+            // Build Scene Components
+            buildJoint();
+
+            // Loop
+            animate();
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        function buildJoint() {
+            // Geometries
+            const subGeo = new THREE.BoxGeometry(8, 0.5, 4);
+            const adhGeo = new THREE.BoxGeometry(3, 0.2, 4);
+            const adhHalfGeo = new THREE.BoxGeometry(3, 0.1, 4);
+            
+            // 1. Bottom Substrate (Fixed)
+            objects.bottomSubstrate = new THREE.Mesh(subGeo, MAT_METAL);
+            objects.bottomSubstrate.position.set(-2.5, 0, 0);
+            objects.bottomSubstrate.castShadow = true;
+            objects.bottomSubstrate.receiveShadow = true;
+            scene.add(objects.bottomSubstrate);
+
+            // 2. Adhesive Full (Used for Adhesive Failure & Substrate Failure)
+            objects.adhesiveFull = new THREE.Mesh(adhGeo, MAT_ADHESIVE);
+            objects.adhesiveFull.position.set(0, 0.35, 0); // centered on overlap
+            objects.adhesiveFull.castShadow = true;
+            scene.add(objects.adhesiveFull);
+
+            // 3. Adhesive Halves (Used for Cohesive Adhesive Failure)
+            objects.adhesiveBottomHalf = new THREE.Mesh(adhHalfGeo, MAT_FRACTURE_ADHESIVE);
+            objects.adhesiveBottomHalf.position.set(0, 0.3, 0);
+            objects.adhesiveBottomHalf.visible = false;
+            scene.add(objects.adhesiveBottomHalf);
+
+            objects.adhesiveTopHalf = new THREE.Mesh(adhHalfGeo, MAT_FRACTURE_ADHESIVE);
+            objects.adhesiveTopHalf.position.set(0, 0.4, 0);
+            objects.adhesiveTopHalf.visible = false;
+            scene.add(objects.adhesiveTopHalf);
+
+            // 4. Top Substrate Full (Standard)
+            objects.topSubstrateFull = new THREE.Mesh(subGeo, MAT_METAL);
+            objects.topSubstrateFull.position.set(2.5, 0.7, 0);
+            objects.topSubstrateFull.castShadow = true;
+            scene.add(objects.topSubstrateFull);
+
+            // 5. Top Substrate Split (Used for Cohesive Substrate Failure)
+            // Part A: Bonded section (Stays)
+            // The overlap is 3 units wide. The substrate is 8 units wide.
+            // Center of top sub is 2.5. Overlap is at 0.
+            // Overlap region relative to Top Sub center: -2.5 to 0.5 world coords
+            
+            // Let's make a custom geometry for the broken piece
+            // Bonded piece (stays)
+            const brokenBaseGeo = new THREE.BoxGeometry(4, 0.5, 4); 
+            // Add a fracture plane texture to one side? We'll use color for now.
+            objects.topSubstrateBrokenBase = new THREE.Mesh(brokenBaseGeo, MAT_METAL);
+            objects.topSubstrateBrokenBase.position.set(0.5, 0.7, 0); // Centered on overlap roughly
+            objects.topSubstrateBrokenBase.visible = false;
+            
+            // Add fracture face
+            // FIX: Dimensions must match the box cross section (Height 0.5, Depth 4)
+            // We use PlaneGeometry(4, 0.5) => Width 4, Height 0.5
+            // Then rotate Y 90 deg so Width(4) becomes Depth(Z).
+            const fracGeo = new THREE.PlaneGeometry(4, 0.5);
+            fracGeo.rotateY(Math.PI / 2); // Rotate to face X axis
+
+            const fracMesh = new THREE.Mesh(fracGeo, MAT_FRACTURE_METAL);
+            fracMesh.position.set(2, 0, 0); // Right end of the block
+            objects.topSubstrateBrokenBase.add(fracMesh);
+            
+            scene.add(objects.topSubstrateBrokenBase);
+
+            // Part B: Flying section (Moves)
+            const brokenFlyGeo = new THREE.BoxGeometry(4, 0.5, 4);
+            objects.topSubstrateBrokenFly = new THREE.Mesh(brokenFlyGeo, MAT_METAL);
+            objects.topSubstrateBrokenFly.position.set(4.5, 0.7, 0);
+            objects.topSubstrateBrokenFly.visible = false;
+
+            // Add fracture face to flying part
+            const fracMesh2 = new THREE.Mesh(fracGeo, MAT_FRACTURE_METAL);
+            fracMesh2.position.set(-2, 0, 0); // Left end of the block
+            // Important: Rotate 180 degrees to face outward (towards -X)
+            fracMesh2.rotation.y = Math.PI; 
+            objects.topSubstrateBrokenFly.add(fracMesh2);
+
+            scene.add(objects.topSubstrateBrokenFly);
+        }
+
+        // --- INTERACTION LOGIC ---
+
+        function setMode(mode) {
+            if(isSimulating) return;
+            currentMode = mode;
+            resetScene();
+
+            // UI Feedback
+            const btn = document.getElementById('action-btn');
+            const infoTitle = document.getElementById('info-title');
+            const infoDesc = document.getElementById('info-desc');
+            const infoBox = document.getElementById('info-box');
+
+            // Reset borders
+            ['btn-adhesive', 'btn-cohesive-adh', 'btn-cohesive-sub'].forEach(id => {
+                document.getElementById(id).classList.remove('ring-2', 'ring-offset-2', 'ring-blue-500', 'ring-red-500', 'ring-emerald-500');
+            });
+
+            btn.disabled = false;
+            btn.classList.remove('bg-slate-400', 'cursor-not-allowed', 'bg-red-600', 'bg-blue-600', 'bg-emerald-600');
+            btn.classList.add('shadow-lg', 'active:scale-95');
+            infoBox.classList.remove('border-blue-500', 'border-red-500', 'border-emerald-500', 'bg-blue-50', 'bg-red-50', 'bg-emerald-50');
+
+            if (mode === 'adhesive') {
+                infoTitle.innerText = "Mode: Adhesive Failure";
+                infoDesc.innerText = "The bond fails at the interface between adhesive and substrate. Often caused by poor surface prep.";
+                infoTitle.className = "font-semibold text-red-800";
+                infoBox.classList.add('border-red-500', 'bg-red-50');
+                btn.innerText = "Simulate Adhesive Failure";
+                btn.classList.add('bg-red-600', 'hover:bg-red-700');
+                document.getElementById('btn-adhesive').classList.add('ring-2', 'ring-offset-2', 'ring-red-500');
+            } 
+            else if (mode === 'cohesive-adh') {
+                infoTitle.innerText = "Mode: Cohesive (Adhesive)";
+                infoDesc.innerText = "The adhesive itself breaks. The bond to the surface is stronger than the adhesive's internal strength.";
+                infoTitle.className = "font-semibold text-blue-800";
+                infoBox.classList.add('border-blue-500', 'bg-blue-50');
+                btn.innerText = "Simulate Cohesive Failure";
+                btn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                document.getElementById('btn-cohesive-adh').classList.add('ring-2', 'ring-offset-2', 'ring-blue-500');
+            } 
+            else if (mode === 'cohesive-sub') {
+                infoTitle.innerText = "Mode: Cohesive (Substrate)";
+                infoDesc.innerText = "The metal breaks outside the joint. The adhesive bond is stronger than the structural material.";
+                infoTitle.className = "font-semibold text-emerald-800";
+                infoBox.classList.add('border-emerald-500', 'bg-emerald-50');
+                btn.innerText = "Simulate Substrate Failure";
+                btn.classList.add('bg-emerald-600', 'hover:bg-emerald-700');
+                document.getElementById('btn-cohesive-sub').classList.add('ring-2', 'ring-offset-2', 'ring-emerald-500');
+            }
+        }
+
+        function triggerFailure() {
+            if(!currentMode || isSimulating) return;
+            isSimulating = true;
+            document.getElementById('action-btn').disabled = true;
+            document.getElementById('action-btn').innerText = "Simulating...";
+
+            // Setup Geometries for the specific animation
+            prepareMeshesForAnimation();
+
+            // Show results text after delay
+            setTimeout(() => {
+                showResults();
+            }, 1500);
+        }
+
+        function prepareMeshesForAnimation() {
+            // Hide everything first, then show what's needed
+            objects.topSubstrateFull.visible = false;
+            objects.adhesiveFull.visible = false;
+            objects.adhesiveTopHalf.visible = false;
+            objects.adhesiveBottomHalf.visible = false;
+            objects.topSubstrateBrokenBase.visible = false;
+            objects.topSubstrateBrokenFly.visible = false;
+
+            if (currentMode === 'adhesive') {
+                // Top full moves, Adhesive full stays
+                objects.topSubstrateFull.visible = true;
+                objects.adhesiveFull.visible = true;
+                // Important: Adhesive stays with bottom (default pos), Top moves
+            }
+            else if (currentMode === 'cohesive-adh') {
+                // Top full moves with Top Half adhesive. Bottom Half stays.
+                objects.topSubstrateFull.visible = true;
+                objects.adhesiveTopHalf.visible = true;
+                objects.adhesiveBottomHalf.visible = true;
+            }
+            else if (currentMode === 'cohesive-sub') {
+                // Adhesive full stays. Top Substrate Split used.
+                objects.adhesiveFull.visible = true;
+                objects.topSubstrateBrokenBase.visible = true;
+                objects.topSubstrateBrokenFly.visible = true;
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            if (isSimulating) {
+                const speed = 0.08;
+                const limit = 4.0; // Distance to travel
+
+                if (currentMode === 'adhesive') {
+                    // Move Top Substrate Only
+                    if(objects.topSubstrateFull.position.x < 2.5 + limit) {
+                        objects.topSubstrateFull.position.x += speed;
+                        // Add slight rotation to show it popping off?
+                        objects.topSubstrateFull.rotation.z = Math.min(0.1, objects.topSubstrateFull.rotation.z + 0.002);
+                    }
+                }
+                else if (currentMode === 'cohesive-adh') {
+                    // Move Top Substrate AND Top Adhesive Half
+                    if(objects.topSubstrateFull.position.x < 2.5 + limit) {
+                        objects.topSubstrateFull.position.x += speed;
+                        objects.adhesiveTopHalf.position.x += speed;
+                    }
+                }
+                else if (currentMode === 'cohesive-sub') {
+                    // Move only the Flying part of Top Substrate
+                    if(objects.topSubstrateBrokenFly.position.x < 4.5 + limit) {
+                        objects.topSubstrateBrokenFly.position.x += speed;
+                    }
+                }
+            }
+            renderer.render(scene, camera);
+        }
+
+        function showResults() {
+            const panel = document.getElementById('result-panel');
+            const text = document.getElementById('result-text');
+            panel.classList.remove('hidden');
+
+            if (currentMode === 'adhesive') {
+                text.innerHTML = `<span class="text-red-600 font-bold">Adhesive Failure Detected.</span><br>The bond failed cleanly at the interface. The adhesive remains on the bottom substrate, leaving the top substrate bare. This is usually undesirable.`;
+            } else if (currentMode === 'cohesive-adh') {
+                text.innerHTML = `<span class="text-blue-600 font-bold">Cohesive Failure (Adhesive).</span><br>The joint failed within the adhesive layer itself. Both substrates are still covered with adhesive. This indicates the bond to the surface was good, but the adhesive's internal strength was the limit.`;
+            } else if (currentMode === 'cohesive-sub') {
+                text.innerHTML = `<span class="text-emerald-600 font-bold">Cohesive Failure (Substrate).</span><br>The adhesive bond held perfectly! The stress was so high that the aluminum substrate itself fractured. This is the maximum theoretical performance of a bond.`;
+            }
+        }
+
+        function resetScene() {
+            isSimulating = false;
+            
+            // Reset Positions
+            objects.topSubstrateFull.position.set(2.5, 0.7, 0);
+            objects.topSubstrateFull.rotation.set(0,0,0);
+            objects.adhesiveTopHalf.position.set(0, 0.4, 0);
+            objects.topSubstrateBrokenFly.position.set(4.5, 0.7, 0);
+
+            // Reset Visibility to Default State (Unbroken)
+            objects.bottomSubstrate.visible = true;
+            objects.topSubstrateFull.visible = true;
+            objects.adhesiveFull.visible = true;
+            
+            objects.adhesiveTopHalf.visible = false;
+            objects.adhesiveBottomHalf.visible = false;
+            objects.topSubstrateBrokenBase.visible = false;
+            objects.topSubstrateBrokenFly.visible = false;
+
+            document.getElementById('result-panel').classList.add('hidden');
+            
+            // If a mode is selected, re-enable button
+            if(currentMode) {
+                const btn = document.getElementById('action-btn');
+                btn.disabled = false;
+                btn.innerText = currentMode === 'adhesive' ? "Simulate Adhesive Failure" : 
+                               currentMode === 'cohesive-adh' ? "Simulate Cohesive Failure" : 
+                               "Simulate Substrate Failure";
+            }
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // --- MOUSE CONTROLS (Simple Orbit) ---
+        let isDragging = false;
+        let previousMousePosition = { x: 0, y: 0 };
+        let spherical = new THREE.Spherical();
+        let target = new THREE.Vector3(0,0,0);
+
+        function setupControls() {
+            const dom = renderer.domElement;
+            dom.addEventListener('mousedown', (e) => { isDragging = true; });
+            dom.addEventListener('mouseup', (e) => { isDragging = false; });
+            dom.addEventListener('mousemove', (e) => {
+                const deltaMove = { x: e.offsetX - previousMousePosition.x, y: e.offsetY - previousMousePosition.y };
+                if(isDragging) {
+                    const v = new THREE.Vector3().copy(camera.position).sub(target);
+                    spherical.setFromVector3(v);
+                    spherical.theta -= deltaMove.x * 0.01;
+                    spherical.phi -= deltaMove.y * 0.01;
+                    spherical.phi = Math.max(0.1, Math.min(Math.PI / 2 - 0.1, spherical.phi));
+                    v.setFromSpherical(spherical);
+                    camera.position.copy(target).add(v);
+                    camera.lookAt(target);
+                }
+                previousMousePosition = { x: e.offsetX, y: e.offsetY };
+            });
+            dom.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                const v = new THREE.Vector3().copy(camera.position).sub(target);
+                let dist = v.length();
+                dist += e.deltaY * 0.01;
+                dist = Math.max(5, Math.min(30, dist));
+                v.normalize().multiplyScalar(dist);
+                camera.position.copy(target).add(v);
+            });
+        }
+
+        init();
+    </script>
+</body>
+</html>

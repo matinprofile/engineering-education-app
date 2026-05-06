@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Structural Adhesive Simulator</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #3498db;
+            --success: #27ae60;
+            --danger: #c0392b;
+            --light: #ecf0f1;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--light);
+            color: var(--primary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 { margin-bottom: 10px; }
+        p { max-width: 600px; text-align: center; line-height: 1.5; }
+
+        .game-container {
+            display: flex;
+            gap: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .canvas-wrapper {
+            position: relative;
+            border: 4px solid #bdc3c7;
+            border-radius: 4px;
+            cursor: crosshair;
+        }
+
+        /* Represents the top glass/substrate */
+        .glass-overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            pointer-events: none;
+            transition: background 1s;
+        }
+
+        canvas {
+            display: block;
+            background-color: #fff; /* The substrate */
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            min-width: 250px;
+        }
+
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        button {
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        .btn-pattern { background-color: #bdc3c7; color: #2c3e50; }
+        .btn-pattern:hover { background-color: #95a5a6; }
+        .btn-pattern.active { background-color: var(--accent); color: white; }
+
+        .btn-action { background-color: var(--success); color: white; margin-top: 10px; }
+        .btn-action:hover { transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .btn-action:disabled { background-color: #ccc; cursor: not-allowed; transform: none; }
+
+        .btn-reset { background-color: var(--danger); color: white; }
+
+        .legend {
+            margin-top: 20px;
+            font-size: 0.9rem;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+        }
+        .legend-item { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+        .dot { width: 15px; height: 15px; border-radius: 50%; }
+        
+        .results-panel {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 5px solid var(--accent);
+            display: none;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: white;
+            font-size: 0.8rem;
+            margin-bottom: 10px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>Adhesive Application Lab</h1>
+    <p>Select an adhesive pattern and compress the joint. Observe how the adhesive spreads and whether air gets trapped inside the bond.</p>
+
+    <div class="game-container">
+        <div class="canvas-wrapper">
+            <canvas id="simCanvas" width="400" height="400"></canvas>
+            <div class="glass-overlay" id="glass"></div>
+        </div>
+
+        <div class="controls">
+            <h3>1. Select Pattern</h3>
+            <div class="btn-group">
+                <button class="btn-pattern active" onclick="setPattern('zigzag')">Zig-Zag (Continuous)</button>
+                <button class="btn-pattern" onclick="setPattern('parallel')">Parallel Beads</button>
+                <button class="btn-pattern" onclick="setPattern('perimeter')">Perimeter (Box)</button>
+            </div>
+
+            <h3>2. Apply Force</h3>
+            <button class="btn-action" id="compressBtn" onclick="compress()">Compress Joint</button>
+            <button class="btn-reset" onclick="resetSim()">Reset / Clean</button>
+
+            <div class="results-panel" id="results">
+                <div id="statusBadge" class="status-badge"></div>
+                <div id="resultText"></div>
+            </div>
+
+            <div class="legend">
+                <div class="legend-item"><div class="dot" style="background:#3498db"></div>Adhesive</div>
+                <div class="legend-item"><div class="dot" style="background:#e74c3c"></div>Trapped Air (Failure)</div>
+                <div class="legend-item"><div class="dot" style="background:#fff; border:1px solid #ccc"></div>Substrate</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const glass = document.getElementById('glass');
+        const resultsPanel = document.getElementById('results');
+        const resultText = document.getElementById('resultText');
+        const statusBadge = document.getElementById('statusBadge');
+        const compressBtn = document.getElementById('compressBtn');
+
+        // Simulation State
+        let gridSize = 4; // Pixel size of one simulation cell
+        let cols = canvas.width / gridSize;
+        let rows = canvas.height / gridSize;
+        let grid = []; // 0 = empty, 1 = glue, 2 = trapped air
+        let currentPattern = 'zigzag';
+        let isCompressed = false;
+
+        // Initialize
+        function init() {
+            resetGrid();
+            drawPattern();
+        }
+
+        function resetGrid() {
+            grid = new Array(cols).fill(0).map(() => new Array(rows).fill(0));
+        }
+
+        function setPattern(pattern) {
+            if(isCompressed) resetSim();
+            currentPattern = pattern;
+            
+            // UI Toggle
+            document.querySelectorAll('.btn-pattern').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            resetGrid();
+            drawPattern();
+        }
+
+        // Draw the initial patterns onto the grid
+        function drawPattern() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Logic to draw specific patterns into the grid array
+            if (currentPattern === 'zigzag') {
+                for (let x = 10; x < cols - 10; x++) {
+                    // Sine wave logic
+                    let y = Math.floor((rows / 2) + (Math.sin(x * 0.15) * (rows / 3)));
+                    brush(x, y);
+                }
+            } else if (currentPattern === 'parallel') {
+                for (let x = 20; x < cols - 20; x++) {
+                    brush(x, 30);
+                    brush(x, 50);
+                    brush(x, 70);
+                }
+            } else if (currentPattern === 'perimeter') {
+                // Box shape
+                for (let x = 20; x < cols - 20; x++) {
+                    brush(x, 20);
+                    brush(x, rows - 20);
+                }
+                for (let y = 20; y < rows - 20; y++) {
+                    brush(20, y);
+                    brush(cols - 20, y);
+                }
+            }
+            
+            render();
+        }
+
+        // Helper to set grid bits with a slight thickness
+        function brush(x, y) {
+            const thickness = 2;
+            for(let i = -thickness; i <= thickness; i++) {
+                for(let j = -thickness; j <= thickness; j++) {
+                    if (x+i >= 0 && x+i < cols && y+j >= 0 && y+j < rows) {
+                        grid[x+i][y+j] = 1;
+                    }
+                }
+            }
+        }
+
+        // The Simulation Loop
+        function compress() {
+            if (isCompressed) return;
+            isCompressed = true;
+            compressBtn.disabled = true;
+            glass.style.background = "rgba(0, 0, 0, 0.2)"; // Darken to show pressure
+
+            let steps = 0;
+            const maxSteps = 15; // How much it spreads
+
+            const interval = setInterval(() => {
+                expandGlue();
+                render();
+                steps++;
+                
+                if (steps >= maxSteps) {
+                    clearInterval(interval);
+                    analyzeResult();
+                }
+            }, 100);
+        }
+
+        // Cellular Automata Expansion
+        function expandGlue() {
+            let newGrid = JSON.parse(JSON.stringify(grid)); // Deep copy
+            
+            for (let x = 1; x < cols - 1; x++) {
+                for (let y = 1; y < rows - 1; y++) {
+                    if (grid[x][y] === 1) {
+                        // Expand to neighbors randomly to simulate fluid
+                        if (Math.random() > 0.3) newGrid[x+1][y] = 1;
+                        if (Math.random() > 0.3) newGrid[x-1][y] = 1;
+                        if (Math.random() > 0.3) newGrid[x][y+1] = 1;
+                        if (Math.random() > 0.3) newGrid[x][y-1] = 1;
+                    }
+                }
+            }
+            grid = newGrid;
+        }
+
+        // Air Trap Detection (Flood Fill)
+        function analyzeResult() {
+            let visited = new Array(cols).fill(false).map(() => new Array(rows).fill(false));
+            let queue = [];
+
+            // Add all border cells to queue (air escape routes)
+            for(let x = 0; x < cols; x++) {
+                queue.push({x: x, y: 0});
+                queue.push({x: x, y: rows - 1});
+                visited[x][0] = true;
+                visited[x][rows-1] = true;
+            }
+            for(let y = 0; y < rows; y++) {
+                queue.push({x: 0, y: y});
+                queue.push({x: cols - 1, y: y});
+                visited[0][y] = true;
+                visited[cols-1][y] = true;
+            }
+
+            // BFS Flood Fill from edges
+            while(queue.length > 0) {
+                let cell = queue.shift();
+                
+                const neighbors = [
+                    {x: cell.x+1, y: cell.y}, {x: cell.x-1, y: cell.y},
+                    {x: cell.x, y: cell.y+1}, {x: cell.x, y: cell.y-1}
+                ];
+
+                for(let n of neighbors) {
+                    if(n.x >= 0 && n.x < cols && n.y >= 0 && n.y < rows) {
+                        // If not visited AND it is empty (not glue)
+                        if(!visited[n.x][n.y] && grid[n.x][n.y] !== 1) {
+                            visited[n.x][n.y] = true;
+                            queue.push(n);
+                        }
+                    }
+                }
+            }
+
+            // Detect Trapped Air
+            let trappedPixels = 0;
+            for(let x = 0; x < cols; x++) {
+                for(let y = 0; y < rows; y++) {
+                    // If it's not glue (grid=0) AND we couldn't reach it from edge (visited=false)
+                    if(grid[x][y] === 0 && !visited[x][y]) {
+                        grid[x][y] = 2; // Mark as trapped air
+                        trappedPixels++;
+                    }
+                }
+            }
+            
+            render();
+            showFeedback(trappedPixels);
+        }
+
+        function showFeedback(trappedPixels) {
+            resultsPanel.style.display = 'block';
+            let totalPixels = cols * rows;
+            let trappedPercent = (trappedPixels / totalPixels * 100).toFixed(1);
+
+            if (trappedPixels > 50) { // Threshold for "Bad"
+                statusBadge.style.backgroundColor = '#e74c3c';
+                statusBadge.textContent = 'HIGH RISK OF FAILURE';
+                resultText.innerHTML = `<strong>Result:</strong> ${trappedPercent}% of the area contains trapped air pockets.<br><br>
+                Because the adhesive lines formed a closed loop, the air inside had nowhere to escape during compression. This weakens the bond and leads to corrosion.`;
+            } else {
+                statusBadge.style.backgroundColor = '#27ae60';
+                statusBadge.textContent = 'OPTIMAL BOND';
+                resultText.innerHTML = `<strong>Result:</strong> The air escape path remained open during compression.<br><br>
+                The adhesive spread outwards, pushing the air out of the edges effectively.`;
+            }
+        }
+
+        // Rendering Logic
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            for (let x = 0; x < cols; x++) {
+                for (let y = 0; y < rows; y++) {
+                    if (grid[x][y] === 1) {
+                        ctx.fillStyle = '#3498db'; // Glue
+                        ctx.fillRect(x * gridSize, y * gridSize, gridSize, gridSize);
+                    } else if (grid[x][y] === 2) {
+                        ctx.fillStyle = '#e74c3c'; // Trapped Air
+                        ctx.fillRect(x * gridSize, y * gridSize, gridSize, gridSize);
+                    }
+                }
+            }
+        }
+
+        function resetSim() {
+            isCompressed = false;
+            compressBtn.disabled = false;
+            resultsPanel.style.display = 'none';
+            glass.style.background = "rgba(255, 255, 255, 0.1)";
+            setPattern(currentPattern); // Redraws original pattern
+        }
+
+        // Start
+        init();
+
+    </script>
+</body>
+</html>

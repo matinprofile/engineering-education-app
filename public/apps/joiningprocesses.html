@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Joining processes guide</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        'hub-blue': '#1e40af', // Darker blue for contrast
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col items-center justify-center font-sans p-6">
+
+    <div class="w-full max-w-5xl">
+        <!-- Header -->
+        <header class="text-center mb-10">
+            <h1 class="text-4xl font-extrabold text-gray-900 mb-2">
+                Material Joining Process Hub
+            </h1>
+            <p class="text-xl text-gray-600">Select a guide below to explore the associated processes.</p>
+        </header>
+
+        <!-- Main Grid of Buttons/Cards -->
+        <div class="grid md:grid-cols-3 gap-8">
+
+            <!-- Card 1: Adhesive Bonding -->
+            <a href="adhesive_bonding_guide.html" class="group block p-6 bg-white rounded-xl shadow-lg hover:shadow-2xl transition duration-300 transform hover:-translate-y-1 border-b-4 border-cyan-500 hover:border-cyan-600">
+                <div class="flex flex-col items-center text-center">
+                    
+                    <!-- Icon Space: Drop/Glue Icon (Inline SVG) -->
+                    <div class="mb-4 p-3 bg-cyan-100 rounded-full group-hover:bg-cyan-200 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-cyan-600">
+                            <path d="M6 15l4-4 4 4 6-6 4 4 6-6"></path>
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM12 14.5c-.83 0-1.5-.67-1.5-1.5V6h3v7c0 .83-.67 1.5-1.5 1.5z"/>
+                            <path d="M16 17c0 2.21-1.79 4-4 4s-4-1.79-4-4"/>
+                        </svg>
+                    </div>
+
+                    <h2 class="text-2xl font-bold text-gray-900 group-hover:text-cyan-700">Adhesive Bonding</h2>
+                    <p class="mt-2 text-gray-500">Guides on surface preparation, curing, and structural adhesive applications.</p>
+                </div>
+            </a>
+
+            <!-- Card 2: Welding (Linked to process_viewer.html) -->
+            <a href="sjl.html" class="group block p-6 bg-white rounded-xl shadow-lg hover:shadow-2xl transition duration-300 transform hover:-translate-y-1 border-b-4 border-red-500 hover:border-red-600">
+                <div class="flex flex-col items-center text-center">
+                    
+                    <!-- Icon Space: Welding/Flame Icon (Inline SVG) -->
+                    <div class="mb-4 p-3 bg-red-100 rounded-full group-hover:bg-red-200 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-red-600">
+                            <path d="M18 10c0-1.88-.95-3.57-2.5-4.5V2h-3v3.5C11.95 5.43 11 7.12 11 9c0 1.88.95 3.57 2.5 4.5V22h-3v-5l-4 4V15L3 18l4-4V5H3V2h7v3.5C14.05 5.43 15 7.12 15 9c0 1.88-.95 3.57-2.5 4.5V22h3v-5l4 4V15l-4 3z"/>
+                        </svg>
+                    </div>
+
+                    <h2 class="text-2xl font-bold text-gray-900 group-hover:text-red-700">Welding</h2>
+                    <p class="mt-2 text-gray-500">Detailed steps for Laser Welding, Arc Welding and Friction Stir Welding.</p>
+                </div>
+            </a>
+
+            <!-- Card 3: Joining by Forming (Mechanical) -->
+            <a href="joining_by_forming_guide.html" class="group block p-6 bg-white rounded-xl shadow-lg hover:shadow-2xl transition duration-300 transform hover:-translate-y-1 border-b-4 border-emerald-500 hover:border-emerald-600">
+                <div class="flex flex-col items-center text-center">
+                    
+                    <!-- Icon Space: Gear/Mechanical Icon (Inline SVG) -->
+                    <div class="mb-4 p-3 bg-emerald-100 rounded-full group-hover:bg-emerald-200 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-emerald-600">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33 1.65 1.65 0 0 0 1.51-1V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82 1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                        </svg>
+                    </div>
+
+                    <h2 class="text-2xl font-bold text-gray-900 group-hover:text-emerald-700">Joining by Forming</h2>
+                    <p class="mt-2 text-gray-500">Guides on methods like hemming, riveting and clinching, and self-piercing riveting (SPR) and their equipment.</p>
+                </div>
+            </a>
+        </div>
+    </div>
+
+</body>
+</html>

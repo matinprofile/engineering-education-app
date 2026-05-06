@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Tratamento por Plasma (HDPE)</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <style>
+        body {
+            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            overflow-x: hidden;
+        }
+        
+        #canvas-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: #0f172a;
+            cursor: none; /* Hide default cursor */
+            overflow: hidden;
+        }
+
+        /* Chemical Molecule Animation */
+        .molecule-container {
+            transition: all 0.3s ease;
+        }
+        .atom {
+            transition: all 0.5s ease;
+        }
+        .bond {
+            transition: all 0.5s ease;
+        }
+        
+        /* Custom Progress Bar */
+        progress::-webkit-progress-bar {
+            background-color: #334155;
+            border-radius: 0.5rem;
+        }
+        progress::-webkit-progress-value {
+            background-color: #8b5cf6;
+            border-radius: 0.5rem;
+            transition: width 0.1s linear;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center p-4 sm:p-6">
+
+    <header class="w-full max-w-7xl mb-6 flex flex-col md:flex-row items-center justify-between gap-6 border-b border-slate-800 pb-6">
+        <div class="flex-grow text-center md:text-left">
+            <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight text-violet-500 flex items-center justify-center md:justify-start gap-3">
+                <i data-lucide="zap" class="w-10 h-10"></i>
+                Tratamento por Plasma Atmosférico
+            </h1>
+            <p class="text-slate-400 mt-2 text-lg">Substrato: <span class="text-white font-bold">HDPE</span> (Polietileno de Alta Densidade)</p>
+            <p class="text-slate-500 text-sm mt-1">Ative a tocha para funcionalizar a superfície e aumentar a energia superficial (molhabilidade).</p>
+        </div>
+        
+        <div class="flex items-center gap-4 text-right">
+            <div class="bg-slate-900 p-3 rounded-lg border border-slate-800">
+                <p class="text-xs text-slate-500 uppercase font-bold">Gás de Processo</p>
+                <p class="text-violet-400 font-mono">Ar Comprimido (N₂/O₂)</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-3 gap-6 h-[650px]">
+
+        <div class="lg:col-span-2 bg-slate-900 rounded-xl border border-slate-700 shadow-2xl overflow-hidden flex flex-col relative group">
+            
+            <div id="canvas-container">
+                <div id="plasma-status" class="absolute top-6 left-1/2 transform -translate-x-1/2 bg-black/60 backdrop-blur px-6 py-2 rounded-full border border-violet-500/30 opacity-0 transition-opacity duration-200">
+                    <span class="font-bold text-violet-400 tracking-wider flex items-center gap-2">
+                        <i data-lucide="zap" class="w-4 h-4 fill-current"></i> PLASMA ATIVO
+                    </span>
+                </div>
+
+                <div class="absolute inset-0 flex items-center justify-center bg-black/70 pointer-events-none transition-opacity duration-500 group-hover:opacity-0">
+                    <div class="text-center">
+                        <i data-lucide="mouse-pointer-click" class="w-12 h-12 mx-auto mb-2 text-violet-500 animate-bounce"></i>
+                        <h3 class="text-2xl font-bold">Controlo Manual</h3>
+                        <p class="text-slate-300">Clique e segure para ativar o jato de plasma.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-950 p-3 flex justify-between px-6 text-xs font-mono text-slate-500 border-t border-slate-800">
+                <div class="flex items-center gap-2">
+                    <span class="w-3 h-3 rounded-full bg-slate-700"></span> Não Tratado (Hidrofóbico)
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="w-3 h-3 rounded-full bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]"></span> Ativado (Hidrofílico)
+                </div>
+            </div>
+        </div>
+
+        <div class="lg:col-span-1 flex flex-col gap-4 h-full">
+            
+            <div class="bg-slate-800 rounded-xl border border-slate-700 p-6 shadow-lg">
+                <h3 class="text-violet-400 font-bold mb-4 flex items-center gap-2 border-b border-slate-700 pb-2">
+                    <i data-lucide="activity" class="w-5 h-5"></i>
+                    Energia de Superfície
+                </h3>
+                
+                <div class="mb-2 flex justify-between items-end">
+                    <span class="text-sm text-slate-400">Nível Atual (Dyne/cm)</span>
+                    <span id="dyne-value" class="text-3xl font-mono font-bold text-white">32</span>
+                </div>
+                
+                <progress id="energy-bar" value="32" max="72" class="w-full h-4 mb-2"></progress>
+                
+                <div class="flex justify-between text-[10px] text-slate-500 font-mono">
+                    <span>32 Dyne (HDPE Nativo)</span>
+                    <span>72 Dyne (Água)</span>
+                </div>
+
+                <div class="mt-4 bg-slate-900/50 p-3 rounded border border-slate-700/50 text-xs">
+                    <p class="mb-1"><strong class="text-orange-400">Recuperação Hidrofóbica:</strong></p>
+                    <p class="text-slate-400">Quando o plasma para, as cadeias poliméricas rodam. Os grupos polares escondem-se, baixando a energia superficial.</p>
+                </div>
+            </div>
+
+            <div class="bg-slate-800 rounded-xl border border-slate-700 p-6 shadow-lg flex-grow flex flex-col">
+                <h3 class="text-blue-400 font-bold mb-4 flex items-center gap-2 border-b border-slate-700 pb-2">
+                    <i data-lucide="microscope" class="w-5 h-5"></i>
+                    Química da Superfície
+                </h3>
+
+                <div class="flex-grow flex flex-col items-center justify-center bg-slate-900 rounded-lg p-4 relative overflow-hidden border border-slate-700">
+                    
+                    <div id="molecule-view" class="relative w-full h-40 flex items-center justify-center">
+                        </div>
+
+                    <div class="mt-4 text-center">
+                        <h4 id="chem-title" class="text-lg font-bold text-slate-200">Inerte (Apolar)</h4>
+                        <p id="chem-desc" class="text-sm text-slate-400 mt-1">Cadeias longas de Carbono-Hidrogénio.</p>
+                    </div>
+                </div>
+
+                <div class="mt-4 grid grid-cols-2 gap-2 text-[10px] text-slate-500 text-center">
+                    <div class="bg-slate-700/30 p-2 rounded">
+                        <span class="block text-xl mb-1">⚪</span>
+                        Hidrogénio
+                    </div>
+                    <div class="bg-slate-700/30 p-2 rounded">
+                        <span class="block text-xl mb-1">⚫</span>
+                        Carbono
+                    </div>
+                    <div class="bg-slate-700/30 p-2 rounded">
+                        <span class="block text-xl mb-1 text-red-500">🔴</span>
+                        Oxigénio (Plasma)
+                    </div>
+                    <div class="bg-slate-700/30 p-2 rounded">
+                        <span class="block text-xl mb-1 text-violet-500">⚡</span>
+                        Eletrão Livre
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        // Init Icons
+        lucide.createIcons();
+
+        // --- SIMULATION STATE ---
+        const config = {
+            gridSize: 64, // Resolution of the surface energy map
+            decayRate: 0.15, // How fast surface energy drops per frame
+            treatmentRate: 2.5, // How fast energy rises under plasma
+            maxEnergy: 72, // Dynes
+            baseEnergy: 32, // Dynes (Untreated HDPE)
+            plasmaRadius: 3 // Radius of effect on grid
+        };
+
+        let scene, camera, renderer, raycaster, mouse;
+        let plate, torch, plasmaLight, plasmaParticles;
+        
+        // Logical Grid representing the HDPE surface
+        // 2D array storing values 0.0 (untreated) to 1.0 (fully treated)
+        let energyGrid = new Float32Array(config.gridSize * config.gridSize).fill(0);
+        let plateTexture, plateCanvas, plateCtx;
+
+        let isTreating = false;
+        let currentEnergyUnderTorch = config.baseEnergy;
+
+        // UI References
+        const uiEnergyBar = document.getElementById('energy-bar');
+        const uiDyneValue = document.getElementById('dyne-value');
+        const uiPlasmaStatus = document.getElementById('plasma-status');
+        const uiChemTitle = document.getElementById('chem-title');
+        const uiChemDesc = document.getElementById('chem-desc');
+        const uiMolecule = document.getElementById('molecule-view');
+
+        // --- 1. SETUP THREE.JS ---
+        function init() {
+            const container = document.getElementById('canvas-container');
+            
+            // Scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0f172a); // Slate-900 match
+            scene.fog = new THREE.FogExp2(0x0f172a, 0.03);
+
+            // Camera
+            const aspect = container.clientWidth / container.clientHeight;
+            camera = new THREE.PerspectiveCamera(50, aspect, 0.1, 100);
+            camera.position.set(0, 15, 12);
+            camera.lookAt(0, 0, 0);
+
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.shadowMap.enabled = true;
+            container.appendChild(renderer.domElement);
+
+            // Lights
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+            scene.add(ambientLight);
+
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            dirLight.position.set(5, 10, 5);
+            dirLight.castShadow = true;
+            scene.add(dirLight);
+
+            // Dynamic Plasma Light (Point Light)
+            plasmaLight = new THREE.PointLight(0x8b5cf6, 0, 10, 2); // Violet light
+            scene.add(plasmaLight);
+
+            // Objects
+            createHDPEPlate();
+            createTorch();
+            createPlasmaParticles();
+
+            // Interaction
+            raycaster = new THREE.Raycaster();
+            mouse = new THREE.Vector2();
+
+            container.addEventListener('mousemove', onMouseMove);
+            container.addEventListener('mousedown', () => { isTreating = true; uiPlasmaStatus.style.opacity = 1; });
+            container.addEventListener('mouseup', () => { isTreating = false; uiPlasmaStatus.style.opacity = 0; });
+            window.addEventListener('resize', onWindowResize);
+
+            animate();
+            updateMoleculeVisuals(0); // Init chemical view
+        }
+
+        // --- 2. OBJECT CREATION ---
+
+        function createHDPEPlate() {
+            // Create a dynamic canvas texture for the heat map
+            plateCanvas = document.createElement('canvas');
+            plateCanvas.width = config.gridSize;
+            plateCanvas.height = config.gridSize;
+            plateCtx = plateCanvas.getContext('2d');
+            
+            // Fill black initially
+            plateCtx.fillStyle = '#000000';
+            plateCtx.fillRect(0, 0, config.gridSize, config.gridSize);
+
+            plateTexture = new THREE.CanvasTexture(plateCanvas);
+            plateTexture.magFilter = THREE.LinearFilter; // Smooth out the pixels
+            plateTexture.minFilter = THREE.LinearFilter;
+
+            const geometry = new THREE.PlaneGeometry(20, 20);
+            const material = new THREE.MeshStandardMaterial({ 
+                color: 0x334155, // Base slate color
+                roughness: 0.2,
+                metalness: 0.1,
+                // We use emissive map to show the "Energy" glowing
+                emissiveMap: plateTexture,
+                emissive: 0xffffff,
+                emissiveIntensity: 1
+            });
+
+            plate = new THREE.Mesh(geometry, material);
+            plate.rotation.x = -Math.PI / 2;
+            plate.receiveShadow = true;
+            scene.add(plate);
+        }
+
+        function createTorch() {
+            const group = new THREE.Group();
+
+            // Body
+            const bodyGeo = new THREE.CylinderGeometry(0.5, 0.5, 4, 16);
+            const bodyMat = new THREE.MeshStandardMaterial({ color: 0x64748b });
+            const body = new THREE.Mesh(bodyGeo, bodyMat);
+            body.position.y = 2;
+            
+            // Nozzle
+            const nozzleGeo = new THREE.CylinderGeometry(0.3, 0.5, 1, 16);
+            const nozzleMat = new THREE.MeshStandardMaterial({ color: 0xd97706 }); // Amber/Copper
+            const nozzle = new THREE.Mesh(nozzleGeo, nozzleMat);
+            nozzle.position.y = -0.5;
+
+            group.add(body);
+            group.add(nozzle);
+            
+            // Angle it slightly
+            group.rotation.x = Math.PI / 6;
+
+            torch = group;
+            scene.add(torch);
+        }
+
+        function createPlasmaParticles() {
+            const count = 200;
+            const geom = new THREE.BufferGeometry();
+            const pos = new Float32Array(count * 3);
+            
+            for(let i=0; i<count; i++) {
+                pos[i*3] = (Math.random() - 0.5) * 0.5;
+                pos[i*3+1] = Math.random() * -2; // Downwards
+                pos[i*3+2] = (Math.random() - 0.5) * 0.5;
+            }
+            
+            geom.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+            
+            const mat = new THREE.PointsMaterial({
+                color: 0xa78bfa, // Light Violet
+                size: 0.15,
+                transparent: true,
+                opacity: 0.8,
+                blending: THREE.AdditiveBlending
+            });
+
+            plasmaParticles = new THREE.Points(geom, mat);
+            plasmaParticles.visible = false;
+            scene.add(plasmaParticles);
+        }
+
+        // --- 3. PHYSICS & LOGIC ---
+
+        function onMouseMove(event) {
+            const rect = event.target.getBoundingClientRect();
+            mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObject(plate);
+
+            if (intersects.length > 0) {
+                const point = intersects[0].point;
+                
+                // Move Torch
+                torch.position.set(point.x, point.y + 3, point.z + 1);
+                
+                // Move Plasma Light & Particles
+                plasmaLight.position.set(point.x, point.y + 0.5, point.z);
+                
+                plasmaParticles.position.copy(torch.position);
+                plasmaParticles.position.y -= 1.0; // Start at nozzle
+
+                // Process Surface Treatment
+                if (isTreating) {
+                    applyTreatment(intersects[0].uv);
+                }
+                
+                // Read local energy for UI
+                updateUI(intersects[0].uv);
+            }
+        }
+
+        function applyTreatment(uv) {
+            // Convert UV to grid coordinates
+            const cx = Math.floor(uv.x * config.gridSize);
+            const cy = Math.floor(uv.y * config.gridSize); // Texture UV y is flipped in canvas sometimes, but let's treat direct mapping
+            
+            const r = config.plasmaRadius;
+
+            // Apply energy to circle of cells around cursor
+            for (let x = -r; x <= r; x++) {
+                for (let y = -r; y <= r; y++) {
+                    if (x*x + y*y <= r*r) {
+                        const gridX = cx + x;
+                        const gridY = cy + y; // In 2D array Y maps to rows
+
+                        // Check bounds
+                        if (gridX >= 0 && gridX < config.gridSize && gridY >= 0 && gridY < config.gridSize) {
+                            const index = (config.gridSize - 1 - gridY) * config.gridSize + gridX; // Map UV (0,0 bottom-left) to Array (Top-left usually) logic
+                            
+                            // Increase energy, cap at 1.0
+                            if (energyGrid[index] < 1.0) {
+                                energyGrid[index] += 0.05 * config.treatmentRate;
+                                if(energyGrid[index] > 1.0) energyGrid[index] = 1.0;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        function processDecay() {
+            // Slowly reduce energy of all cells (Hydrophobic Recovery)
+            for (let i = 0; i < energyGrid.length; i++) {
+                if (energyGrid[i] > 0) {
+                    energyGrid[i] -= 0.001 * config.decayRate;
+                    if (energyGrid[i] < 0) energyGrid[i] = 0;
+                }
+            }
+        }
+
+        function updateTexture() {
+            // Draw the energyGrid onto the canvas
+            const imgData = plateCtx.createImageData(config.gridSize, config.gridSize);
+            const data = imgData.data;
+
+            for (let i = 0; i < energyGrid.length; i++) {
+                const energy = energyGrid[i];
+                const pixelIndex = i * 4;
+
+                // Color Map: Black (0) -> Green/Cyan (1)
+                // Untreated (0): R=0, G=0, B=0
+                // Treated (1): R=0, G=255, B=100 (Toxic Green/Cyan glow)
+                
+                data[pixelIndex] = 0;     // R
+                data[pixelIndex + 1] = Math.floor(energy * 255); // G
+                data[pixelIndex + 2] = Math.floor(energy * 150); // B
+                data[pixelIndex + 3] = 255;   // Alpha
+            }
+
+            plateCtx.putImageData(imgData, 0, 0);
+            plateTexture.needsUpdate = true;
+        }
+
+        function updateUI(uv) {
+            // Get energy at cursor position
+            const cx = Math.floor(uv.x * config.gridSize);
+            const cy = Math.floor(uv.y * config.gridSize);
+            const index = (config.gridSize - 1 - cy) * config.gridSize + cx;
+            
+            const rawLevel = energyGrid[index] || 0;
+            
+            // Interpolate Dyne Value
+            const currentDynes = Math.round(config.baseEnergy + (rawLevel * (config.maxEnergy - config.baseEnergy)));
+            
+            uiDyneValue.innerText = currentDynes;
+            uiEnergyBar.value = currentDynes;
+
+            updateMoleculeVisuals(rawLevel);
+        }
+
+        // --- 4. DIDACTIC VISUALIZATION ---
+        
+        function updateMoleculeVisuals(energyLevel) {
+            // Switch visuals based on energy threshold
+            // Level 0: Pure CH chain
+            // Level > 0.5: Polar groups attached
+            
+            let html = '';
+            
+            if (energyLevel < 0.3) {
+                // UNTREATED
+                uiChemTitle.innerText = "Polímero Inerte";
+                uiChemTitle.className = "text-lg font-bold text-slate-400";
+                uiChemDesc.innerText = "Superfície apolar. Apenas ligações C-H e C-C. Baixa adesão.";
+                
+                // CSS representation of C-C-C-C backbone with H
+                html = `
+                    <div class="flex items-center gap-1 opacity-50 grayscale">
+                        <div class="flex flex-col items-center"><div class="w-2 h-2 rounded-full bg-white mb-1"></div><div class="w-6 h-6 rounded-full bg-slate-800 border-2 border-slate-500 flex items-center justify-center font-bold text-[10px]">C</div><div class="w-2 h-2 rounded-full bg-white mt-1"></div></div>
+                        <div class="w-4 h-1 bg-slate-600"></div>
+                        <div class="flex flex-col items-center"><div class="w-2 h-2 rounded-full bg-white mb-1"></div><div class="w-6 h-6 rounded-full bg-slate-800 border-2 border-slate-500 flex items-center justify-center font-bold text-[10px]">C</div><div class="w-2 h-2 rounded-full bg-white mt-1"></div></div>
+                        <div class="w-4 h-1 bg-slate-600"></div>
+                        <div class="flex flex-col items-center"><div class="w-2 h-2 rounded-full bg-white mb-1"></div><div class="w-6 h-6 rounded-full bg-slate-800 border-2 border-slate-500 flex items-center justify-center font-bold text-[10px]">C</div><div class="w-2 h-2 rounded-full bg-white mt-1"></div></div>
+                    </div>
+                `;
+            } else {
+                // TREATED
+                uiChemTitle.innerText = "Superfície Funcionalizada";
+                uiChemTitle.className = "text-lg font-bold text-green-400";
+                uiChemDesc.innerText = "Bombardeamento cria radicais. Oxigénio liga-se formando grupos Carbonila (C=O) e Hidroxila (-OH).";
+
+                // CSS representation with Oxygen attached
+                html = `
+                    <div class="flex items-center gap-1 animate-pulse">
+                        <div class="flex flex-col items-center"><div class="w-2 h-2 rounded-full bg-white mb-1"></div><div class="w-6 h-6 rounded-full bg-slate-800 border-2 border-slate-500 flex items-center justify-center font-bold text-[10px]">C</div><div class="w-2 h-2 rounded-full bg-white mt-1"></div></div>
+                        <div class="w-4 h-1 bg-slate-600"></div>
+                        
+                        <div class="flex flex-col items-center relative">
+                            <div class="absolute -top-6 flex flex-col items-center animate-bounce">
+                                <div class="w-5 h-5 rounded-full bg-red-600 border border-red-400 flex items-center justify-center text-[8px] font-bold">O</div>
+                                <div class="h-3 w-0.5 bg-red-500"></div>
+                            </div>
+                            <div class="w-6 h-6 rounded-full bg-slate-800 border-2 border-green-500 flex items-center justify-center font-bold text-[10px] text-green-400">C*</div>
+                            <div class="w-2 h-2 rounded-full bg-white mt-1"></div>
+                        </div>
+                        
+                        <div class="w-4 h-1 bg-slate-600"></div>
+                        
+                        <div class="flex flex-col items-center relative">
+                            <div class="w-2 h-2 rounded-full bg-white mb-1"></div>
+                            <div class="w-6 h-6 rounded-full bg-slate-800 border-2 border-green-500 flex items-center justify-center font-bold text-[10px] text-green-400">C*</div>
+                            <div class="absolute -bottom-6 flex flex-col items-center">
+                                <div class="h-3 w-0.5 bg-red-500"></div>
+                                <div class="flex items-center bg-red-900/50 rounded px-1 border border-red-500"><span class="w-2 h-2 bg-red-600 rounded-full mr-1"></span><span class="text-[8px]">OH</span></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            uiMolecule.innerHTML = html;
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Plasma Visuals
+            if (isTreating) {
+                plasmaLight.intensity = Math.random() * 2 + 3;
+                plasmaParticles.visible = true;
+                // Jiggle particles
+                const positions = plasmaParticles.geometry.attributes.position.array;
+                for(let i=0; i < positions.length/3; i++) {
+                    positions[i*3+1] -= 0.2; // Move down
+                    if(positions[i*3+1] < -2) positions[i*3+1] = 0; // Reset
+                }
+                plasmaParticles.geometry.attributes.position.needsUpdate = true;
+            } else {
+                plasmaLight.intensity = 0;
+                plasmaParticles.visible = false;
+            }
+
+            processDecay();
+            updateTexture();
+
+            renderer.render(scene, camera);
+        }
+
+        function onWindowResize() {
+            const container = document.getElementById('canvas-container');
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height);
+        }
+
+        // Boot
+        init();
+
+    </script>
+</body>
+</html>

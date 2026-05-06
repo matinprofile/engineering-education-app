@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Montagem de Junta em Molde</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #f8fafc; font-family: sans-serif; }
+        #canvas-container { width: 100%; height: 100vh; position: absolute; top: 0; left: 0; z-index: 0; }
+        .ui-panel {
+            position: relative;
+            z-index: 10;
+            backdrop-filter: blur(12px);
+            background-color: rgba(255, 255, 255, 0.9);
+            border-right: 1px solid rgba(226, 232, 240, 0.8);
+        }
+        .step-active { border-left: 4px solid #3b82f6; background: rgba(59, 130, 246, 0.05); }
+        .step-inactive { border-left: 4px solid transparent; opacity: 0.5; }
+    </style>
+</head>
+<body>
+
+    <div id="canvas-container"></div>
+
+    <div class="absolute inset-0 pointer-events-none flex">
+        <!-- Sidebar -->
+        <div class="ui-panel pointer-events-auto w-full md:w-96 h-full shadow-2xl flex flex-col p-6 overflow-y-auto">
+            <header class="mb-8">
+                <span class="text-blue-600 text-xs font-bold tracking-widest uppercase">Guia Prático</span>
+                <h1 class="text-2xl font-black text-slate-800">Montagem em Molde</h1>
+                <p class="text-sm text-slate-500 mt-2">Procedimento de fabrico para juntas de sobreposição simples (SLJ).</p>
+            </header>
+
+            <!-- Progress Steps -->
+            <div class="space-y-4 flex-1">
+                <div id="step-0" class="p-4 rounded-r-lg transition-all step-active">
+                    <h3 class="font-bold text-slate-800 text-sm">1. Preparação do Molde</h3>
+                    <p class="text-xs text-slate-600 mt-1">Aplicação de agente desmoldante. O molde de aço requer proteção para não colar permanentemente à peça.</p>
+                </div>
+
+                <div id="step-1" class="p-4 rounded-r-lg transition-all step-inactive">
+                    <h3 class="font-bold text-slate-800 text-sm">2. Camada Inferior</h3>
+                    <p class="text-xs text-slate-600 mt-1">Posicionamento do primeiro calço (85mm) e do aderente (110mm). Alinhamento perfeito topo-a-topo.</p>
+                </div>
+
+                <div id="step-2" class="p-4 rounded-r-lg transition-all step-inactive">
+                    <h3 class="font-bold text-slate-800 text-sm">3. Calço Superior</h3>
+                    <p class="text-xs text-slate-600 mt-1">Colocação do segundo calço sobre o aderente inferior, definindo a folga para o adesivo.</p>
+                </div>
+
+                <div id="step-3" class="p-4 rounded-r-lg transition-all step-inactive">
+                    <h3 class="font-bold text-slate-800 text-sm">4. Fecho do Empilhamento</h3>
+                    <p class="text-xs text-slate-600 mt-1">Inserção do segundo aderente. A área de sobreposição final é de 25x25 mm.</p>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="mt-8 pt-6 border-t border-slate-200">
+                <div id="instruction-text" class="bg-blue-50 p-4 rounded-lg mb-4">
+                    <p class="text-sm text-blue-800 font-medium">Inicie aplicando o agente desmoldante no molde.</p>
+                </div>
+                
+                <div class="flex space-x-2">
+                    <button id="prev-btn" onclick="changeStep(-1)" disabled class="flex-1 py-3 bg-slate-200 text-slate-500 font-bold rounded-xl transition-all">Anterior</button>
+                    <button id="next-btn" onclick="changeStep(1)" class="flex-2 px-8 py-3 bg-blue-600 text-white font-bold rounded-xl shadow-lg shadow-blue-200 hover:bg-blue-700 active:scale-95 transition-all">Próximo Passo</button>
+                </div>
+                <button onclick="location.reload()" class="w-full mt-4 text-xs text-slate-400 hover:text-slate-600 underline">Reiniciar Simulação</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="pointer-events-none absolute bottom-6 right-6 flex flex-col space-y-2">
+        <div class="bg-white/80 backdrop-blur p-3 rounded-lg shadow-sm border border-slate-200 text-[10px] text-slate-600">
+            <div class="flex items-center mb-1"><span class="w-2 h-2 bg-slate-400 rounded-full mr-2"></span> Molde (Aço)</div>
+            <div class="flex items-center mb-1"><span class="w-2 h-2 bg-amber-500 rounded-full mr-2"></span> Calços (85x25x2.2mm)</div>
+            <div class="flex items-center mb-1"><span class="w-2 h-2 bg-slate-700 rounded-full mr-2"></span> Aderentes (110x25x2mm)</div>
+            <div class="flex items-center"><span class="w-2 h-2 bg-blue-300 rounded-full mr-2"></span> Pinos (Espaçamento 25mm)</div>
+        </div>
+    </div>
+
+    <script>
+        let scene, camera, renderer, currentStep = 0;
+        const totalSteps = 4;
+        const meshes = {};
+
+        function init() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xf1f5f9);
+
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(20, 15, 20);
+            
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+            const ambient = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambient);
+            const spot = new THREE.DirectionalLight(0xffffff, 0.8);
+            spot.position.set(10, 25, 15);
+            spot.castShadow = true;
+            scene.add(spot);
+
+            createModels();
+            setupControls();
+            animate();
+            window.addEventListener('resize', onResize);
+        }
+
+        function createModels() {
+            // Materials
+            const matMould = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.7, roughness: 0.2 });
+            const matPins = new THREE.MeshStandardMaterial({ color: 0xcbd5e1, metalness: 0.8, roughness: 0.1 });
+            const matAdherend = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.5, roughness: 0.5 });
+            const matShim = new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.3, roughness: 0.4 });
+            const matRelease = new THREE.MeshStandardMaterial({ color: 0x60a5fa, transparent: true, opacity: 0.3 });
+
+            // 1. Mould Base (Surface is at y=0 because box is 1 unit tall centered at -0.5)
+            const mouldBase = new THREE.Mesh(new THREE.BoxGeometry(24, 1, 6), matMould);
+            mouldBase.position.y = -0.5;
+            mouldBase.receiveShadow = true;
+            scene.add(mouldBase);
+
+            // 2. Pins
+            const pinGeo = new THREE.CylinderGeometry(0.15, 0.15, 2.5, 16);
+            const pinXPositions = [-10, -5, 0, 5, 10];
+            pinXPositions.forEach(x => {
+                [1.4, -1.4].forEach(z => {
+                    const pin = new THREE.Mesh(pinGeo, matPins);
+                    pin.position.set(x, 1.25, z);
+                    scene.add(pin);
+                });
+            });
+
+            // 3. Release Agent (Step 0)
+            const release = new THREE.Mesh(new THREE.PlaneGeometry(22, 3), matRelease);
+            release.rotation.x = -Math.PI / 2;
+            release.position.y = 0.01;
+            release.visible = false;
+            meshes.release = release;
+            scene.add(release);
+
+            // 4. First Layer (Step 1) - Corrected Y targets to sit ON TOP of mould (y > 0)
+            // Shim 1: Height is 0.22. Center should be at 0.11
+            meshes.shim1 = new THREE.Mesh(new THREE.BoxGeometry(8.5, 0.22, 2.5), matShim);
+            meshes.shim1.position.set(-5.5, 4, 0); 
+            meshes.shim1.visible = false;
+            scene.add(meshes.shim1);
+
+            // Adherend 1: Height is 0.2. Center should be at 0.1
+            meshes.adh1 = new THREE.Mesh(new THREE.BoxGeometry(11, 0.2, 2.5), matAdherend);
+            meshes.adh1.position.set(4.25, 4, 0); 
+            meshes.adh1.visible = false;
+            scene.add(meshes.adh1);
+
+            // 5. Second Layer (Step 2)
+            // Shim 2 sits on top of Adh 1. Adh 1 surface is at 0.1 + 0.1 = 0.2.
+            // Shim 2 center: 0.2 + 0.11 = 0.31
+            meshes.shim2 = new THREE.Mesh(new THREE.BoxGeometry(8.5, 0.22, 2.5), matShim);
+            meshes.shim2.position.set(5.5, 5, 0);
+            meshes.shim2.visible = false;
+            scene.add(meshes.shim2);
+
+            // 6. Third Layer (Step 3)
+            // Adherend 2 sits on top of Shim 1. Shim 1 surface is at 0.11 + 0.11 = 0.22.
+            // Adh 2 center: 0.22 + 0.1 = 0.32
+            meshes.adh2 = new THREE.Mesh(new THREE.BoxGeometry(11, 0.2, 2.5), matAdherend);
+            meshes.adh2.position.set(-4.25, 6, 0);
+            meshes.adh2.visible = false;
+            scene.add(meshes.adh2);
+        }
+
+        const stepData = [
+            { 
+                text: "O molde foi revestido com desmoldante. Os pinos estão agora espaçados a exatamente 25mm para guiar os componentes lateralmente.",
+                onEnter: () => { meshes.release.visible = true; }
+            },
+            { 
+                text: "Camada 1: Colocação do calço (85mm) à esquerda e do aderente (110mm) à direita. Ambos assentam diretamente sobre a face do molde.",
+                onEnter: () => { meshes.shim1.visible = true; meshes.adh1.visible = true; }
+            },
+            { 
+                text: "Camada 2: Colocação do calço superior sobre o aderente direito. Isto cria o suporte para a extremidade do segundo aderente.",
+                onEnter: () => { meshes.shim2.visible = true; }
+            },
+            { 
+                text: "Fecho: O segundo aderente é colocado sobre o calço esquerdo. A folga de 25x25mm no centro é onde o adesivo será processado.",
+                onEnter: () => { meshes.adh2.visible = true; }
+            }
+        ];
+
+        function changeStep(dir) {
+            const nextStep = currentStep + dir;
+            if(nextStep < 0 || nextStep >= totalSteps) return;
+            document.getElementById(`step-${currentStep}`).classList.replace('step-active', 'step-inactive');
+            currentStep = nextStep;
+            document.getElementById(`step-${currentStep}`).classList.replace('step-inactive', 'step-active');
+            document.getElementById('instruction-text').innerHTML = `<p class="text-sm text-blue-800 font-medium">${stepData[currentStep].text}</p>`;
+            document.getElementById('prev-btn').disabled = (currentStep === 0);
+            document.getElementById('next-btn').innerText = (currentStep === totalSteps - 1) ? "Finalizado" : "Próximo Passo";
+            stepData[currentStep].onEnter();
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            // Animation logic: components fall to sit EXACTLY on the surface or previous layer
+            // Surface is at y=0. Centers are half-height above surface.
+            if(meshes.shim1.visible && meshes.shim1.position.y > 0.11) meshes.shim1.position.y -= 0.15;
+            if(meshes.adh1.visible && meshes.adh1.position.y > 0.1) meshes.adh1.position.y -= 0.15;
+            
+            // Second layers sit on first layers
+            if(meshes.shim2.visible && meshes.shim2.position.y > 0.31) meshes.shim2.position.y -= 0.15;
+            if(meshes.adh2.visible && meshes.adh2.position.y > 0.32) meshes.adh2.position.y -= 0.15;
+
+            renderer.render(scene, camera);
+        }
+
+        let isDragging = false;
+        let prevMouse = { x: 0, y: 0 };
+        const target = new THREE.Vector3(0, 0, 0);
+
+        function setupControls() {
+            const el = renderer.domElement;
+            el.addEventListener('mousedown', () => isDragging = true);
+            window.addEventListener('mouseup', () => isDragging = false);
+            window.addEventListener('mousemove', (e) => {
+                if(!isDragging) { prevMouse = { x: e.clientX, y: e.clientY }; return; }
+                const deltaX = e.clientX - prevMouse.x;
+                const deltaY = e.clientY - prevMouse.y;
+                const spherical = new THREE.Spherical().setFromVector3(camera.position);
+                spherical.theta -= deltaX * 0.005;
+                spherical.phi -= deltaY * 0.005;
+                spherical.phi = Math.max(0.1, Math.min(Math.PI / 2 - 0.1, spherical.phi));
+                camera.position.setFromSpherical(spherical);
+                camera.lookAt(target);
+                prevMouse = { x: e.clientX, y: e.clientY };
+            });
+            el.addEventListener('wheel', (e) => {
+                const dist = camera.position.length();
+                camera.position.normalize().multiplyScalar(Math.max(8, Math.min(50, dist + e.deltaY * 0.02)));
+            });
+        }
+
+        function onResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        init();
+    </script>
+</body>
+</html>

@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adhesive Joint Interactive Tutorial</title>
+    <style>
+        body { margin: 0; overflow: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1a1a1a; color: white; }
+        #canvas-container { width: 100vw; height: 100vh; display: block; }
+        
+        #ui-layer {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 350px;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+            border-left: 4px solid #4CAF50;
+        }
+
+        h1 { font-size: 1.2rem; margin-top: 0; color: #4CAF50; }
+        h2 { font-size: 1rem; margin-bottom: 10px; color: #ddd; }
+        p { font-size: 0.9rem; line-height: 1.5; color: #ccc; margin-bottom: 20px; }
+        
+        .highlight { color: #fff; font-weight: bold; }
+        .warning { color: #ff6b6b; font-weight: bold; }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+
+        button:hover { background: #45a049; }
+        button:disabled { background: #555; cursor: not-allowed; }
+        
+        #progress-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 5px;
+            background: #4CAF50;
+            width: 0%;
+            transition: width 0.5s;
+        }
+
+        #tooltip {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.6);
+            padding: 10px;
+            border-radius: 4px;
+            pointer-events: none;
+            font-size: 0.8rem;
+        }
+    </style>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+</head>
+<body>
+
+    <div id="ui-layer">
+        <h1 id="step-title">Introduction</h1>
+        <h2 id="step-subtitle">Single Lap Joint Tutorial</h2>
+        <div id="step-desc">
+            <p>Welcome to the 3D Single Lap Joint tutorial.</p>
+            <p>We will learn to bond two steel substrates using structural epoxy.</p>
+            <p>Use your mouse to <strong>rotate</strong> and <strong>zoom</strong> the view.</p>
+        </div>
+        <div class="controls">
+            <button id="btn-prev" disabled>Previous</button>
+            <button id="btn-next">Start Tutorial</button>
+        </div>
+    </div>
+    
+    <div id="tooltip">Status: Interactive Scene Active</div>
+    <div id="progress-bar"></div>
+    <div id="canvas-container"></div>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        // --- Configuration & Constants ---
+        const SUBSTRATE_L = 12; // Scaled down (1 unit = 1cm approx for vis)
+        const SUBSTRATE_W = 2.5;
+        const SUBSTRATE_T = 0.2;
+        const OVERLAP = 2.5; 
+        
+        // --- State Management ---
+        let currentStep = -1;
+        const steps = [
+            {
+                title: "Surface Preparation: Abrasion",
+                sub: "Mechanical Interlocking",
+                desc: "We start with two steel substrates (120x25x2mm). <br><br>The first action is <span class='highlight'>Abrasion</span>. Using sandpaper, we abrade the surface in a <strong>crosshatch pattern</strong>. This increases surface roughness for better adhesion.",
+                anim: "abrasion"
+            },
+            {
+                title: "Surface Preparation: Cleaning",
+                sub: "Removing Contaminants",
+                desc: "Clean with a paper towel soaked in acetone. <br><br><span class='warning'>CRITICAL:</span> Pass the towel <strong>only once</strong> over the spot. Do not wipe back and forth, or you will re-deposit contaminants.",
+                anim: "cleaning"
+            },
+            {
+                title: "Mould Setup",
+                sub: "Alignment & Spacing",
+                desc: "Place substrates in a mould with guiding pins. <br><br><strong>Spacer Shims</strong> (Substrate + 0.2mm) are used. This creates a precision <strong>0.2mm vertical gap</strong> for the bondline control. Overlap is set to 25mm.",
+                anim: "mould"
+            },
+            {
+                title: "Adhesive Preparation",
+                sub: "Weighing & Mixing",
+                desc: "We use a 2-part epoxy. <br>1. Weigh <strong>10g of Component A</strong> (Resin).<br>2. Weigh <strong>4g of Component B</strong> (Hardener).<br>3. Mix in a centrifugal mixer for 10 seconds.",
+                anim: "mixing"
+            },
+            {
+                title: "Adhesive Application",
+                sub: "Applying & Closing",
+                desc: "Apply adhesive to the bottom substrate with a spatula. <br><br>Lower the top substrate <strong>gradually from one side</strong>. This technique allows entrapped air to escape, preventing voids.",
+                anim: "application"
+            },
+            {
+                title: "Curing",
+                sub: "The Final Step",
+                desc: "Close the mould and wait <strong>24 hours</strong>.<br><br>The adhesive hardens, and the single lap joint is now a solid, structural component ready for testing.",
+                anim: "curing"
+            }
+        ];
+
+        // --- Three.js Setup ---
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x222222);
+        
+        // Camera
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+        camera.position.set(10, 8, 10);
+        
+        // Renderer
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        container.appendChild(renderer.domElement);
+
+        // Controls
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+        
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight.position.set(5, 10, 7);
+        dirLight.castShadow = true;
+        scene.add(dirLight);
+
+        // --- Materials ---
+        const steelMat = new THREE.MeshStandardMaterial({ color: 0x8899a6, roughness: 0.3, metalness: 0.8 });
+        const sandpaperMat = new THREE.MeshStandardMaterial({ color: 0x8B4513, roughness: 1 });
+        const towelMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
+        const adhesiveMat = new THREE.MeshPhongMaterial({ color: 0xe6ccb3, transparent: true, opacity: 0.9, shininess: 100 });
+        const mouldMat = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.8 });
+        const shimMat = new THREE.MeshStandardMaterial({ color: 0xffd700 }); // Gold for visibility
+
+        // --- Objects Container ---
+        const stage = new THREE.Group();
+        scene.add(stage);
+
+        // Variables to hold mesh references for animation
+        let sub1, sub2, toolObj, mouldBase, fluid;
+        let animationFrameId;
+        let animTime = 0;
+
+        // --- Animation Loop ---
+        function animate() {
+            animationFrameId = requestAnimationFrame(animate);
+            animTime += 0.02;
+            controls.update();
+            
+            // Dynamic Animations based on step
+            if(currentStep === 0) { // Abrasion
+                if(toolObj) {
+                    // Crosshatch movement
+                    toolObj.position.x = Math.sin(animTime * 5) * 1.5;
+                    toolObj.position.z = Math.cos(animTime * 3) * 0.5 + (SUBSTRATE_L/2 - 2); 
+                }
+            }
+            else if (currentStep === 1) { // Cleaning
+                if(toolObj) {
+                    // One way swipe reset
+                    let pos = (animTime * 2) % 6;
+                    toolObj.position.z = -3 + pos;
+                    // Lift up when resetting to simulate "not passing over same spot" logic visually
+                    if (pos < 0.2) toolObj.position.y = 1; 
+                    else toolObj.position.y = 0.3;
+                }
+            }
+            else if (currentStep === 3) { // Mixing
+                if(toolObj) {
+                    // Spin container
+                    toolObj.rotation.z = animTime * 10;
+                    toolObj.rotation.x = 0.2;
+                }
+            }
+            else if (currentStep === 4) { // Application
+               // Logic handled in setup mainly, but maybe pulse the adhesive
+            }
+
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // --- Scene Builders ---
+
+        function clearStage() {
+            while(stage.children.length > 0){ 
+                stage.remove(stage.children[0]); 
+            }
+            toolObj = null;
+            sub1 = null;
+            sub2 = null;
+            mouldBase = null;
+            fluid = null;
+        }
+
+        function createSubstrate(x, y, z) {
+            const geom = new THREE.BoxGeometry(SUBSTRATE_W, SUBSTRATE_T, SUBSTRATE_L);
+            const mesh = new THREE.Mesh(geom, steelMat);
+            mesh.position.set(x, y, z);
+            mesh.castShadow = true;
+            return mesh;
+        }
+
+        function buildSceneForStep(index) {
+            clearStage();
+            animTime = 0;
+
+            if (index === 0) { // Abrasion
+                sub1 = createSubstrate(0, 0, 0);
+                stage.add(sub1);
+                
+                // Sandpaper block
+                const sandGeom = new THREE.BoxGeometry(1.5, 0.2, 1.5);
+                toolObj = new THREE.Mesh(sandGeom, sandpaperMat);
+                toolObj.position.set(0, 0.3, 2);
+                stage.add(toolObj);
+            }
+            else if (index === 1) { // Cleaning
+                sub1 = createSubstrate(0, 0, 0);
+                stage.add(sub1);
+
+                // Acetone Wipe
+                const wipeGeom = new THREE.BoxGeometry(1.5, 0.2, 1.5);
+                toolObj = new THREE.Mesh(wipeGeom, towelMat);
+                toolObj.position.set(0, 0.3, -3);
+                stage.add(toolObj);
+            }
+            else if (index === 2) { // Mould Setup
+                // Mould Base
+                const baseGeom = new THREE.BoxGeometry(6, 0.5, 16);
+                mouldBase = new THREE.Mesh(baseGeom, mouldMat);
+                mouldBase.position.y = -0.5;
+                stage.add(mouldBase);
+
+                // Pins (Visual)
+                for(let i of [-1.3, 1.3]) {
+                    for(let j of [-4, 4]) {
+                        const pin = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 1), new THREE.MeshStandardMaterial({color:0xff0000}));
+                        pin.position.set(i, 0, j);
+                        stage.add(pin);
+                    }
+                }
+
+                // Shims
+                const shimGeom = new THREE.BoxGeometry(SUBSTRATE_W, SUBSTRATE_T + 0.1, 2); // Slightly exaggerated thickness
+                const shim1 = new THREE.Mesh(shimGeom, shimMat);
+                shim1.position.set(0, -0.1, -6); // Shim under far end
+                const shim2 = new THREE.Mesh(shimGeom, shimMat);
+                shim2.position.set(0, -0.1, 6); // Shim under near end
+                stage.add(shim1);
+                stage.add(shim2);
+
+                // Substrates
+                sub1 = createSubstrate(0, 0.1, -2); // Bottom
+                sub2 = createSubstrate(0, 0.1 + SUBSTRATE_T + 0.1, 2); // Top (Gap simulated)
+                stage.add(sub1);
+                stage.add(sub2);
+            }
+            else if (index === 3) { // Mixing
+                // Beaker
+                const cupGeom = new THREE.CylinderGeometry(1.5, 1.5, 3, 32, 1, true);
+                const cupMat = new THREE.MeshStandardMaterial({color: 0xffffff, side: THREE.DoubleSide, transparent: true, opacity: 0.3});
+                const cup = new THREE.Mesh(cupGeom, cupMat);
+                cup.position.y = 1.5;
+                
+                // Liquid A
+                const liquidAGeom = new THREE.CylinderGeometry(1.4, 1.4, 0.5, 32);
+                const liquidA = new THREE.Mesh(liquidAGeom, new THREE.MeshStandardMaterial({color: 0x0000ff})); // Component A
+                liquidA.position.y = 0.25;
+                cup.add(liquidA);
+
+                // Liquid B
+                const liquidBGeom = new THREE.CylinderGeometry(1.4, 1.4, 0.2, 32);
+                const liquidB = new THREE.Mesh(liquidBGeom, new THREE.MeshStandardMaterial({color: 0xffff00})); // Component B
+                liquidB.position.y = 0.6;
+                cup.add(liquidB);
+
+                toolObj = new THREE.Group();
+                toolObj.add(cup);
+                stage.add(toolObj);
+
+                // Mixer Box visual
+                const mixerGeom = new THREE.BoxGeometry(4, 0.2, 4);
+                const mixer = new THREE.Mesh(mixerGeom, new THREE.MeshStandardMaterial({color: 0x444444}));
+                mixer.position.y = -0.1;
+                stage.add(mixer);
+            }
+            else if (index === 4) { // Application
+                // Base
+                sub1 = createSubstrate(0, 0, -2);
+                stage.add(sub1);
+
+                // Adhesive Blob
+                const glueGeom = new THREE.BoxGeometry(2, 0.05, 2);
+                fluid = new THREE.Mesh(glueGeom, adhesiveMat);
+                fluid.position.set(0, 0.11, 2.5); // On overlap area
+                stage.add(fluid);
+
+                // Top Substrate (Angled)
+                sub2 = createSubstrate(0, 2, 2);
+                sub2.rotation.x = -Math.PI / 8; // Angled
+                stage.add(sub2);
+
+                // Animation for dropping
+                const dropAnim = () => {
+                   if(sub2.rotation.x < 0) {
+                       sub2.rotation.x += 0.005;
+                       sub2.position.y -= 0.03;
+                       requestAnimationFrame(dropAnim);
+                   } else {
+                       sub2.rotation.x = 0;
+                       sub2.position.y = 0.2 + 0.1; // Gap
+                   }
+                };
+                setTimeout(dropAnim, 1000);
+            }
+            else if (index === 5) { // Curing
+                sub1 = createSubstrate(0, 0, -2);
+                sub2 = createSubstrate(0, 0.3, 2); // With gap
+                
+                // The cured bondline
+                const curedGeom = new THREE.BoxGeometry(2.5, 0.2, 2.5);
+                const curedMat = new THREE.MeshStandardMaterial({color: 0xDAA520, emissive: 0x221100}); // Golden cured look
+                const joint = new THREE.Mesh(curedGeom, curedMat);
+                joint.position.set(0, 0.15, 0.75); // Overlap region center
+                
+                stage.add(sub1);
+                stage.add(sub2);
+                stage.add(joint);
+
+                // Simple particle effect for "Time Passing" or "Success"
+                const particles = new THREE.Group();
+                for(let k=0; k<20; k++){
+                    const dot = new THREE.Mesh(new THREE.SphereGeometry(0.05), new THREE.MeshBasicMaterial({color:0x00ff00}));
+                    dot.position.set((Math.random()-0.5)*5, (Math.random())*2, (Math.random()-0.5)*5);
+                    particles.add(dot);
+                }
+                stage.add(particles);
+            }
+        }
+
+        // --- UI Logic ---
+        const titleEl = document.getElementById('step-title');
+        const subEl = document.getElementById('step-subtitle');
+        const descEl = document.getElementById('step-desc');
+        const btnNext = document.getElementById('btn-next');
+        const btnPrev = document.getElementById('btn-prev');
+        const progBar = document.getElementById('progress-bar');
+
+        function updateUI(index) {
+            if (index < 0) return;
+            const step = steps[index];
+            titleEl.innerText = step.title;
+            subEl.innerText = step.sub;
+            descEl.innerHTML = step.desc;
+
+            // Progress bar
+            const pct = ((index + 1) / steps.length) * 100;
+            progBar.style.width = pct + '%';
+
+            // Button states
+            btnPrev.disabled = index === 0;
+            btnNext.innerText = index === steps.length - 1 ? "Finish" : "Next Step";
+            btnNext.disabled = index === steps.length - 1;
+
+            buildSceneForStep(index);
+        }
+
+        btnNext.addEventListener('click', () => {
+            if (currentStep < steps.length - 1) {
+                currentStep++;
+                updateUI(currentStep);
+            }
+        });
+
+        btnPrev.addEventListener('click', () => {
+            if (currentStep > 0) {
+                currentStep--;
+                updateUI(currentStep);
+            }
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+    </script>
+</body>
+</html>

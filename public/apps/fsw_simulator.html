@@ -1,0 +1,484 @@
+<!DOCTYPE TEE; html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FSW Process Quality Simulator</title>
+    <!-- Load Tailwind CSS --><script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for aesthetic enhancements */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f9fb;
+        }
+        .shadow-custom {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(0, 0, 0, 0.05);
+        }
+
+        /* CSS for the Spinning Wheel Animation */
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Default speed variable, manipulated by JS */
+        #rotationWheel {
+            --spin-duration: 2.5s;
+            animation: spin var(--spin-duration) linear infinite;
+        }
+        
+        /* Base style for spokes to ensure they radiate from the center */
+        .spoke {
+            position: absolute;
+            width: 4px; /* w-1 */
+            height: 32px; /* h-8 */
+            top: 50%;
+            left: 50%;
+            margin-left: -2px; /* Half of 4px width */
+            margin-top: -32px; /* Pulls the spoke up by its height, so its bottom edge sits exactly on the 50% line */
+            border-radius: 9999px; /* rounded-full */
+            transform-origin: center 100%; /* Ensures rotation happens around the bottom center point (wheel center) */
+            transition: opacity 0.3s, background-color 0.1s;
+        }
+    </style>
+    <script>
+        // Define the real-world temperature scale for FSW Aluminum (in Celsius)
+        const MIN_TEMP_C = 200; // Low end of the scale
+        const MAX_TEMP_C = 650; // High end (unacceptable/overheating)
+        // Define the real-world Force scale (in KiloNewtons)
+        const MAX_FORCE_KN = 20; // Max expected reaction force in kN
+
+        /**
+         * Calculates a color in the Blue (0) -> Green (500) -> Red (1000) gradient.
+         * @param {number} value - The parameter value (0 to 1000).
+         * @returns {string} The RGB color string.
+         */
+        function getGradientColor(value) {
+            const max = 1000;
+            const mid = max / 2;
+            let R = 0, G = 0, B = 0;
+
+            if (value <= mid) { // Phase 1: Blue (0) to Green (500)
+                const ratio = value / mid;
+                B = Math.round(255 * (1 - ratio));
+                G = Math.round(255 * ratio);
+                R = 0;
+            } else { // Phase 2: Green (500) to Red (1000)
+                const ratio = (value - mid) / mid;
+                G = Math.round(255 * (1 - ratio));
+                R = Math.round(255 * ratio);
+                B = 0;
+            }
+            R = Math.min(255, Math.max(0, R));
+            G = Math.min(255, Math.max(0, G));
+            B = Math.min(255, Math.max(0, B));
+            
+            return `rgb(${R}, ${G}, ${B})`;
+        }
+
+
+        /**
+         * Calculates a simple FSW Metal Temperature Index (0-1000).
+         * Model: T = (S * 0.8) + (F * 0.4) - (R * 0.2)
+         * @param {number} F - Axial Force (0-1000 N).
+         * @param {number} S - Rotation Speed (0-1000 rpm).
+         * @param {number} R - Advance Rate (0-1000 mm/min).
+         * @returns {number} Temperature Index (clamped 0 to 1000).
+         */
+        function calculateTemperatureIndex(F, S, R) {
+            let temp = (S * 0.8) + (F * 0.4) - (R * 0.2);
+            temp = Math.max(0, Math.min(1000, temp));
+            return Math.round(temp);
+        }
+        
+        /**
+         * Maps the 0-1000 index to a real-world Celsius temperature scale.
+         * @param {number} index - The calculated temperature index (0 to 1000).
+         * @returns {number} The temperature in Celsius.
+         */
+        function mapIndexToCelsius(index) {
+            const range = MAX_TEMP_C - MIN_TEMP_C;
+            const tempC = MIN_TEMP_C + (index / 1000) * range;
+            return Math.round(tempC);
+        }
+
+        /**
+         * Calculates a simple FSW Reaction Force Index (0-1000).
+         * Model: F_Reaction = (F_Axial * 0.6) + (R_Advance * 0.4) - (S_Rotation * 0.1)
+         * NOTE: If S is near zero, the Force is maxed out, simulating tool damage/trip.
+         * @param {number} F - Axial Force (0-1000 N).
+         * @param {number} S - Rotation Speed (0-1000 rpm).
+         * @param {number} R - Advance Rate (0-1000 mm/min).
+         * @returns {number} Force Index (clamped 0 to 1000).
+         */
+        function calculateForceIndex(F, S, R) {
+            const LOW_SPEED_THRESHOLD = 50;
+            const MAX_FORCE_INDEX = 1000;
+            
+            // FSW principle: Very low rotation speed results in extreme reaction forces.
+            if (S < LOW_SPEED_THRESHOLD) {
+                return MAX_FORCE_INDEX; 
+            }
+
+            // Original model for normal operating speeds
+            let force = (F * 0.6) + (R * 0.4) - (S * 0.1);
+
+            // Clamp the result between 0 and 1000
+            force = Math.max(0, Math.min(MAX_FORCE_INDEX, force));
+            
+            return Math.round(force);
+        }
+
+        /**
+         * Maps the 0-1000 index to a real-world KiloNewton force scale.
+         * @param {number} index - The calculated force index (0 to 1000).
+         * @returns {number} The force in kN.
+         */
+        function mapIndexToKiloNewtons(index) {
+            const forceKN = (index / 1000) * MAX_FORCE_KN;
+            return forceKN.toFixed(1); // One decimal place
+        }
+
+
+        /**
+         * FSW Quality Simulation Logic (Base Quality).
+         * L = 300, H = 700 define the lower and upper bounds of the optimal parameter range.
+         */
+        function calculateQuality(F, S, R) {
+            const L = 300; 
+            const H = 700; 
+            
+            let quality = "RED"; 
+
+            if (R < L) { // Low Advance Rate (R)
+                if (F > H) { 
+                    quality = "RED"; 
+                } else if (F < L) { 
+                    if (S > H) { quality = "ORANGE"; }
+                    else { quality = "RED"; }
+                } else {
+                    quality = "ORANGE";
+                }
+            }
+            else if (R > H) { // High Advance Rate (R)
+                if (S > H) { 
+                    if (F < L) { quality = "GREEN"; }
+                    else if (F <= H) { quality = "ORANGE"; }
+                    else { quality = "RED"; } 
+                } else {
+                    quality = "RED"; 
+                }
+            }
+            else { // Optimal/Mid Advance Rate (300 <= R <= 700)
+                if (F > H) {
+                    quality = "RED"; 
+                }
+                else if ((F < L && S > H) || (F < L && S < L)) {
+                    quality = "ORANGE"; 
+                } else {
+                    quality = "GREEN"; 
+                }
+            }
+            return quality;
+        }
+
+        /**
+         * Updates all visual elements.
+         */
+        function updateVisuals(F, S, R, T_Index, T_C, F_Index, F_KN) {
+            // 1. Axial Force Arrow (F)
+            const arrow = document.getElementById('forceArrow');
+            arrow.style.fill = getGradientColor(F);
+
+
+            // 2. Rotation Speed Wheel (S)
+            const wheel = document.getElementById('rotationWheel');
+            const spokes = document.querySelectorAll('.spoke');
+            const centerDot = document.getElementById('centerDot');
+            const speedColor = getGradientColor(S);
+
+            wheel.style.borderColor = speedColor;
+            spokes.forEach(spoke => spoke.style.backgroundColor = speedColor);
+            centerDot.style.backgroundColor = speedColor;
+            
+            let spinDuration;
+            if (S === 0) {
+                 spinDuration = 99999;
+                 wheel.style.animationPlayState = 'paused';
+                 spokes.forEach(spoke => spoke.style.opacity = '0.3');
+            } else {
+                 spinDuration = 5 - (S / 1000) * 4.5; 
+                 wheel.style.animationPlayState = 'running';
+                 spokes.forEach(spoke => spoke.style.opacity = '1');
+            }
+            wheel.style.setProperty('--spin-duration', `${spinDuration.toFixed(2)}s`);
+
+            // 3. Advance Rate Scale (R)
+            const segments = document.querySelectorAll('.rate-segment');
+            const segmentsToLight = Math.ceil(R / 200);
+            const segmentMidpoints = [100, 300, 500, 700, 900];
+            
+            segments.forEach((segment, index) => {
+                if (index < segmentsToLight) {
+                    const color = getGradientColor(segmentMidpoints[index]);
+                    segment.style.backgroundColor = color;
+                } else {
+                    segment.style.backgroundColor = '#e5e7eb';
+                }
+            });
+
+            // 4. Metal Temperature (T) - Thermometer
+            const thermoFill = document.getElementById('thermometerFill');
+            const tempValueDisplay = document.getElementById('temperatureValue');
+            const fillHeight = (T_Index / 1000) * 100;
+            const tempColor = getGradientColor(T_Index);
+
+            thermoFill.style.height = `${fillHeight}%`;
+            thermoFill.style.backgroundColor = tempColor;
+            tempValueDisplay.textContent = `${T_C}°C`;
+
+
+            // 5. Reaction Force Gauge (F_KN) - Vertical Bar
+            const forceFill = document.getElementById('forceThermometerFill');
+            const forceValueDisplay = document.getElementById('forceValue');
+            
+            // Scale F_Index (0-1000) to height (0-100%)
+            const forceFillHeight = (F_Index / 1000) * 100;
+            const forceColor = getGradientColor(F_Index);
+
+            forceFill.style.height = `${forceFillHeight}%`;
+            forceFill.style.backgroundColor = forceColor;
+
+            // Update kN display
+            forceValueDisplay.textContent = `${F_KN} kN`;
+        }
+
+        function updateSimulation() {
+            const force = parseInt(document.getElementById('axialForce').value);
+            const speed = parseInt(document.getElementById('rotationSpeed').value);
+            const rate = parseInt(document.getElementById('advanceRate').value);
+
+            // Calculate Outputs
+            const tempIndex = calculateTemperatureIndex(force, speed, rate);
+            const tempC = mapIndexToCelsius(tempIndex);
+            const forceIndex = calculateForceIndex(force, speed, rate);
+            const forceKN = mapIndexToKiloNewtons(forceIndex);
+
+            // Constants for quality evaluation
+            const L = 300; 
+            const H = 700; 
+            const LOW_SPEED_THRESHOLD = 50;
+            const HIGH_FORCE_THRESHOLD = 900; // Threshold for general high reaction force failure (>= 18 kN)
+
+            // 1. Update text values next to sliders
+            document.getElementById('axialForceValue').textContent = force;
+            document.getElementById('rotationSpeedValue').textContent = speed;
+            document.getElementById('advanceRateValue').textContent = rate;
+
+            // 2. Determine base quality
+            let quality = calculateQuality(force, speed, rate);
+
+            // --- CRITICAL FAILURE OVERRIDE LOGIC ---
+            let criticalFailure = false;
+            let criticalMessage = "";
+            
+            if (speed < LOW_SPEED_THRESHOLD) {
+                 criticalFailure = true;
+                 criticalMessage = `CRITICAL FAILURE: Rotation too slow (<50 rpm). Force: ${forceKN} kN. Risk of Tool Damage.`;
+            } else if (forceIndex >= HIGH_FORCE_THRESHOLD) {
+                 criticalFailure = true;
+                 criticalMessage = `CRITICAL FAILURE: Extreme Tool Reaction Force (${forceKN} kN). Risk of Tool Breakage or Machine Trip.`;
+            }
+            
+            if (criticalFailure) {
+                quality = "RED"; // Force RED status if critical failure is detected
+            }
+            // ----------------------------------------
+
+            const display = document.getElementById('qualityDisplay');
+            
+            let colorClass, text;
+            let fontSizeClass = "text-xl"; 
+
+            // 3. Set Final Display Text and Color
+            switch (quality) {
+                case "GREEN":
+                    colorClass = "bg-green-500 ring-green-700";
+                    text = "OK Quality: Stable Material Flow";
+                    break;
+                case "ORANGE":
+                    colorClass = "bg-orange-500 ring-orange-700";
+                    text = "Borderline Quality: Needs Optimization";
+                    break;
+                case "RED":
+                default:
+                    colorClass = "bg-red-500 ring-red-700";
+                    
+                    if (criticalFailure) {
+                        text = criticalMessage; // Use the specific critical message
+                        fontSizeClass = "text-lg"; 
+                    } 
+                    // Existing temperature/generic failure checks
+                    else if (tempIndex < L) {
+                        text = `Poor Quality: Underheating / Lack of Flow. T: ${tempC}°C. High Force Risk.`;
+                    } else if (tempIndex > H) {
+                        text = `Poor Quality: Overheating / Excessive Flow. T: ${tempC}°C. Material Ejection Risk.`;
+                    } else {
+                        text = "Poor Quality: Unstable Flow / Critical Imbalance. Parameters mismatched.";
+                    }
+                    break;
+            }
+
+            // Adjust padding to make it smaller
+            display.className = `p-3 ${fontSizeClass} font-bold text-white rounded-xl shadow-md transition-all duration-300 ring-2 ${colorClass} w-full`;
+            display.textContent = text;
+            
+            // Update the quality heading
+            document.getElementById('qualityHeading').textContent = "Process Quality";
+
+
+            // 4. Update Visuals (Pass all calculated values)
+            updateVisuals(force, speed, rate, tempIndex, tempC, forceIndex, forceKN); 
+        }
+
+        // Initialize event listeners on page load
+        window.onload = function() {
+            const sliders = document.querySelectorAll('input[type="range"]');
+            sliders.forEach(slider => {
+                slider.addEventListener('input', updateSimulation);
+            });
+
+            // Initial calculation and visual update on load
+            updateSimulation();
+        };
+
+    </script>
+</head>
+<body class="min-h-screen p-4 flex items-center justify-center">
+
+    <main class="w-full max-w-5xl bg-white p-8 rounded-2xl shadow-custom border border-gray-100">
+
+        <h1 class="text-3xl font-extrabold text-gray-800 mb-2 text-center">FSW Parameter Sandbox</h1>
+        <p class="text-gray-500 mb-8 text-center">Adjust the parameters to simulate the weld quality based on theoretical heat-flow dynamics.</p>
+
+        <!-- Parameter Area (Controls + Gauges) -->
+        <div class="grid grid-cols-4 gap-8">
+            
+            <!-- LEFT SIDE (Inputs) - F and S Controls (Span 2 columns) -->
+            <div class="col-span-4 md:col-span-2 space-y-8">
+
+                <!-- 1. Axial Force (F) -->
+                <div>
+                    <label for="axialForce" class="text-lg font-semibold text-gray-700 block mb-0">
+                        Axial Force (F): <span id="axialForceValue" class="text-blue-600 font-extrabold">500</span> N
+                    </label>
+                    <!-- Visual Element: Downward Arrow (Height h-32 maintained for compactness) -->
+                    <div class="flex justify-center mb-0 -mt-2">
+                        <svg id="forceArrow" class="transition-all duration-100 w-36 h-32" viewBox="0 0 100 150">
+                            <path d="M 50 0 L 50 100 L 30 100 L 50 150 L 70 100 L 50 100 L 50 0 Z" />
+                        </svg>
+                    </div>
+                    <input type="range" id="axialForce" min="0" max="1000" value="500" step="10"
+                        class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer range-lg">
+                    <div class="flex justify-between text-sm text-gray-400 mt-1"><span>0 N (Low)</span><span>1000 N (High)</span></div>
+                </div>
+
+
+                <!-- 2. Rotation Speed (S) -->
+                <div>
+                    <label for="rotationSpeed" class="text-lg font-semibold text-gray-700 block mb-3">
+                        Rotation Speed (S): <span id="rotationSpeedValue" class="text-blue-600 font-extrabold">500</span> rpm
+                    </label>
+                    <!-- Visual Element: Spinning Wheel -->
+                    <div class="flex justify-center mb-6"> 
+                        <div id="rotationWheel" class="relative w-16 h-16 rounded-full border-4 flex items-center justify-center bg-yellow-100 shadow-md transition-colors duration-100">
+                            <!-- Spokes/Pin elements (8 radially distributed spokes at 45 degree intervals) -->
+                            <div class="spoke" style="transform: rotate(0deg);"></div>
+                            <div class="spoke" style="transform: rotate(45deg);"></div>
+                            <div class="spoke" style="transform: rotate(90deg);"></div>
+                            <div class="spoke" style="transform: rotate(135deg);"></div>
+                            <div class="spoke" style="transform: rotate(180deg);"></div>
+                            <div class="spoke" style="transform: rotate(225deg);"></div>
+                            <div class="spoke" style="transform: rotate(270deg);"></div>
+                            <div class="spoke" style="transform: rotate(315deg);"></div>
+                            <!-- Center dot -->
+                            <div id="centerDot" class="w-3 h-3 rounded-full absolute transition-colors duration-100"></div>
+                        </div>
+                    </div>
+                    <input type="range" id="rotationSpeed" min="0" max="1000" value="500" step="10"
+                        class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer range-lg">
+                    <div class="flex justify-between text-sm text-gray-400 mt-1"><span>0 rpm (Slow)</span><span>1000 rpm (Fast)</span></div>
+                </div>
+
+            </div>
+            
+            <!-- RIGHT SIDE (Outputs) - Gauges (Span 2 columns) -->
+            <div class="col-span-4 md:col-span-2 flex flex-row space-x-4 md:space-x-8 items-start justify-center pt-8">
+                
+                <!-- Thermometer (Left Gauge) -->
+                <div class="flex flex-col items-center w-1/2">
+                    <h2 class="text-lg font-bold text-gray-700 mb-4 text-center">Metal Temp. Est.</h2>
+                    <div class="relative w-10 h-64 bg-gray-200 rounded-full border-4 border-gray-400 overflow-hidden shadow-inner">
+                        <!-- Thermometer Fill -->
+                        <div id="thermometerFill" style="height: 50%; background-color: rgb(0, 255, 0); bottom: 0;" 
+                             class="absolute w-full transition-all duration-300">
+                        </div>
+                    </div>
+                    <!-- Display Celsius Value only -->
+                    <div id="temperatureValue" class="text-3xl font-extrabold text-gray-800 mt-4">425°C</div>
+                    <div class="text-sm text-gray-500">(200°C - 650°C)</div>
+                </div>
+
+                <!-- Reaction Force Gauge (Right Gauge) - Vertical Bar -->
+                <div class="flex flex-col items-center w-1/2">
+                    <h2 class="text-lg font-bold text-gray-700 mb-4 text-center">Tool Reaction Force</h2>
+                    <!-- Vertical Bar Container -->
+                    <div id="forceThermometerContainer" class="relative w-10 h-64 bg-gray-200 rounded-full border-4 border-gray-400 overflow-hidden shadow-inner">
+                        <!-- Force Fill -->
+                        <div id="forceThermometerFill" style="height: 50%; background-color: rgb(0, 255, 0); bottom: 0;" 
+                             class="absolute w-full transition-all duration-300">
+                        </div>
+                    </div>
+                    <!-- Display KN Value -->
+                    <div id="forceValue" class="text-3xl font-extrabold text-gray-800 mt-4">10.0 kN</div>
+                    <div class="text-sm text-gray-500">(0 kN - 20 kN)</div>
+                </div>
+
+            </div>
+
+            <!-- New Row: Advance Rate and Quality Display are now side-by-side -->
+            
+            <!-- 3. Advance Rate (R) - Now in its own column block -->
+            <div class="col-span-4 md:col-span-2 mt-4">
+                <div>
+                    <label for="advanceRate" class="text-lg font-semibold text-gray-700 block mb-3">
+                        Advance Rate (R): <span id="advanceRateValue" class="text-blue-600 font-extrabold">500</span> mm/min
+                    </label>
+                    <!-- Visual Element: 5-Segment Scale -->
+                    <div class="flex justify-center space-x-1 mb-4 p-2 bg-gray-50 rounded-lg border">
+                        <div class="rate-segment w-6 h-6 rounded-full transition-colors duration-200"></div>
+                        <div class="rate-segment w-6 h-6 rounded-full transition-colors duration-200"></div>
+                        <div class="rate-segment w-6 h-6 rounded-full transition-colors duration-200"></div>
+                        <div class="rate-segment w-6 h-6 rounded-full transition-colors duration-200"></div>
+                        <div class="rate-segment w-6 h-6 rounded-full transition-colors duration-200"></div>
+                    </div>
+                    <input type="range" id="advanceRate" min="0" max="1000" value="500" step="10"
+                        class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer range-lg">
+                    <div class="flex justify-between text-sm text-gray-400 mt-1"><span>0 mm/min (Slow)</span><span>1000 mm/min (Fast)</span></div>
+                </div>
+            </div>
+
+            <!-- Quality Output - Now next to the Advance Rate (R) selector -->
+            <div class="col-span-4 md:col-span-2 mt-4 flex flex-col justify-start md:justify-end items-center md:items-start text-center md:text-left">
+                <h2 id="qualityHeading" class="text-xl font-bold text-gray-700 mb-4">Simulated Process Quality</h2>
+                <div id="qualityDisplay" class="p-6 text-2xl font-bold text-white rounded-xl shadow-xl ring-4 bg-orange-500 ring-orange-700">
+                    Borderline Quality: Needs Optimization
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+</body>
+</html>

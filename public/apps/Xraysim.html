@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de análise radiográfica em juntas soldadas</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        /* FILM GRAIN TEXTURE */
+        .film-grain {
+            background-color: #0f172a;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.15'/%3E%3C/svg%3E");
+        }
+
+        /* WELD BEAD STYLE (The lighter strip on the negative) */
+        .weld-bead-rt {
+            background: linear-gradient(180deg, 
+                rgba(255,255,255,0.05) 0%, 
+                rgba(255,255,255,0.2) 40%, 
+                rgba(255,255,255,0.2) 60%, 
+                rgba(255,255,255,0.05) 100%);
+            box-shadow: 0 0 15px rgba(255,255,255,0.1);
+        }
+
+        /* DEFECT STYLES (Darker spots on the negative) */
+        /* Porosity: Round, dark spots */
+        .defect-porosity {
+            background: radial-gradient(circle, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 70%);
+            filter: blur(1px);
+        }
+        
+        /* Crack: Jagged, fine dark line */
+        .defect-crack {
+            height: 2px;
+            background: rgba(0,0,0,0.9);
+            box-shadow: 0 0 2px rgba(0,0,0,0.8);
+            transform: rotate(-5deg);
+            clip-path: polygon(0% 0%, 20% 100%, 40% 0%, 60% 100%, 80% 0%, 100% 100%);
+        }
+
+        /* Slag: Irregular blob, less dense than crack */
+        .defect-slag {
+            background: rgba(0,0,0,0.6);
+            border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+            filter: blur(2px);
+        }
+
+        /* LOF: Straight edge, sharp on one side */
+        .defect-lof {
+            background: linear-gradient(90deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
+            height: 4px;
+            filter: blur(0.5px);
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-900 text-slate-100 flex flex-col items-center p-4 sm:p-6 selection:bg-blue-500/30">
+
+    <header class="w-full max-w-7xl mb-8 flex flex-col md:flex-row items-center justify-between gap-6 border-b border-slate-800 pb-6">
+        
+        <div class="flex-shrink-0">
+            <a href="https://lucasgroup.pt/" target="_blank" title="Visitar Lucas Group">
+                <img src="logo.jpg" alt="Lucas Group Logo" class="w-[181px] h-[173px] object-contain bg-white/5 rounded-lg border border-slate-700 hover:opacity-90 transition-opacity">
+            </a>
+        </div>
+
+        <div class="flex-grow text-center md:text-left md:pl-10">
+            <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight text-blue-400 flex items-center justify-center md:justify-start gap-3">
+                <i data-lucide="eye" class="w-10 h-10"></i>
+                Simulador de análise radiográfica em juntas soldadas
+            </h1>
+            <p class="text-slate-400 mt-2 text-lg">Interpretação de defeitos em soldadura</p>
+            <p class="text-slate-500 text-sm mt-1">Selecione um defeito no menu para visualizar a sua aparência no filme radiográfico.</p>
+        </div>
+    </header>
+
+    <main class="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <div class="lg:col-span-2 bg-black rounded-xl border border-slate-700 shadow-2xl overflow-hidden flex flex-col">
+            
+            <div class="bg-slate-800 px-4 py-2 border-b border-slate-700 flex justify-between items-center">
+                <span class="text-xs font-mono text-slate-400 uppercase tracking-widest">Negatoscópio Digital</span>
+                <span class="text-xs text-blue-400 flex items-center gap-1"><i data-lucide="zap" class="w-3 h-3"></i> Fonte: Raios-X 200kV</span>
+            </div>
+
+            <div class="relative w-full h-[400px] flex items-center justify-center film-grain p-8 overflow-hidden">
+                
+                <div class="relative w-full h-48 bg-slate-800/40 border border-slate-700/50 backdrop-blur-sm flex items-center justify-center shadow-lg transform transition-all duration-500" id="film-sheet">
+                    
+                    <div class="absolute top-2 left-4 text-slate-500/30 font-mono text-xs font-bold select-none rotate-0">
+                        LUCAS-GRP-01<br>ASTM E142
+                    </div>
+
+                    <div class="absolute top-1/2 -translate-y-1/2 right-10 flex flex-col gap-1 opacity-40">
+                        <div class="w-12 h-[1px] bg-slate-400"></div>
+                        <div class="w-12 h-[2px] bg-slate-400"></div>
+                        <div class="w-12 h-[3px] bg-slate-400"></div>
+                        <div class="w-12 h-[4px] bg-slate-400"></div>
+                        <span class="text-[10px] text-slate-400 text-center font-mono">10 FE EN</span>
+                    </div>
+
+                    <div class="relative w-full h-24 weld-bead-rt flex items-center justify-center overflow-hidden">
+                        
+                        <div id="defect-display" class="relative w-full h-full opacity-0 transition-opacity duration-700">
+                            </div>
+
+                    </div>
+                </div>
+
+            </div>
+            
+            <div class="bg-slate-900 p-3 text-center border-t border-slate-800">
+                <p class="text-xs text-slate-500">Filme Tipo D7 | Densidade 2.5 | Distância Fonte-Filme 700mm</p>
+            </div>
+        </div>
+
+        <div class="lg:col-span-1 flex flex-col gap-6">
+            
+            <div class="bg-slate-800 rounded-xl border border-slate-700 p-6 shadow-lg">
+                <h3 class="text-blue-400 font-bold mb-4 flex items-center gap-2">
+                    <i data-lucide="list-filter" class="w-5 h-5"></i>
+                    Seletor de defeitos
+                </h3>
+                <div class="grid grid-cols-1 gap-3">
+                    <button onclick="selectDefect('clean')" class="btn-defect text-left px-4 py-3 rounded-lg bg-slate-700 hover:bg-slate-600 transition-colors border border-transparent focus:border-blue-400 focus:bg-slate-900 group">
+                        <span class="font-semibold text-slate-200 group-hover:text-white">Junta sã (sem defeitos)</span>
+                    </button>
+                    <button onclick="selectDefect('porosity')" class="btn-defect text-left px-4 py-3 rounded-lg bg-slate-700 hover:bg-slate-600 transition-colors border border-transparent focus:border-blue-400 focus:bg-slate-900 group">
+                        <span class="font-semibold text-slate-200 group-hover:text-white">Porosidade agrupada</span>
+                    </button>
+                    <button onclick="selectDefect('crack')" class="btn-defect text-left px-4 py-3 rounded-lg bg-slate-700 hover:bg-slate-600 transition-colors border border-transparent focus:border-blue-400 focus:bg-slate-900 group">
+                        <span class="font-semibold text-slate-200 group-hover:text-white">Fissura transversal (crack)</span>
+                    </button>
+                    <button onclick="selectDefect('lof')" class="btn-defect text-left px-4 py-3 rounded-lg bg-slate-700 hover:bg-slate-600 transition-colors border border-transparent focus:border-blue-400 focus:bg-slate-900 group">
+                        <span class="font-semibold text-slate-200 group-hover:text-white">Falta de fusão lateral</span>
+                    </button>
+                    <button onclick="selectDefect('slag')" class="btn-defect text-left px-4 py-3 rounded-lg bg-slate-700 hover:bg-slate-600 transition-colors border border-transparent focus:border-blue-400 focus:bg-slate-900 group">
+                        <span class="font-semibold text-slate-200 group-hover:text-white">Inclusão de escória</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-slate-800 rounded-xl border border-slate-700 p-6 shadow-lg flex-grow">
+                <h3 class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-3">Diagnóstico e contexto</h3>
+                
+                <div id="info-box">
+                    <h2 id="defect-title" class="text-xl font-bold text-white mb-2">Aguardando seleção...</h2>
+                    <div id="defect-desc" class="text-slate-300 text-sm leading-relaxed space-y-2">
+                        <p>Selecione um tipo de defeito na lista acima para projetar a sua imagem no filme radiográfico.</p>
+                        <p>Observe as diferenças em densidade (tons de cinza) e morfologia (forma).</p>
+                    </div>
+                </div>
+
+                <div class="mt-6 pt-4 border-t border-slate-700">
+                    <div class="flex items-center justify-between text-[10px] text-slate-500 uppercase font-mono mb-1">
+                        <span>Menos denso</span>
+                        <span>Mais denso (metal)</span>
+                    </div>
+                    <div class="h-2 w-full rounded-full bg-gradient-to-r from-black via-gray-500 to-white"></div>
+                    <div class="flex items-center justify-between text-[10px] text-slate-400 mt-1">
+                        <span>Defeito (escuro)</span>
+                        <span>Metal base (claro)</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <footer class="mt-8 text-center text-slate-600 text-xs pb-4">
+        <p>&copy; 2025 Lucas Group - www.lucasgroup.pt</p>
+    </footer>
+
+    <script>
+        // Initialize Icons
+        lucide.createIcons();
+
+        // Data Source
+        const DEFECT_DATA = {
+            clean: {
+                title: "Junta Sã (Aprovada)",
+                desc: "A soldadura apresenta uma densidade uniforme na área do cordão. A área mais clara (branca/cinza) representa o reforço da soldadura, que é mais espesso e absorve mais radiação. Não existem manchas escuras irregulares.",
+                html: "" // No defect HTML
+            },
+            porosity: {
+                title: "Porosidade Agrupada",
+                desc: "Gás aprisionado durante a solidificação. Aparece como pontos redondos e escuros (muito preto) porque o gás tem densidade quase nula comparada ao aço, permitindo a passagem livre dos Raios-X.",
+                // HTML creates random dark dots
+                html: `
+                    <div class="defect-porosity absolute w-2 h-2 top-1/2 left-[30%]" style="border-radius:50%"></div>
+                    <div class="defect-porosity absolute w-3 h-3 top-[45%] left-[32%]" style="border-radius:50%"></div>
+                    <div class="defect-porosity absolute w-1.5 h-1.5 top-[55%] left-[31%]" style="border-radius:50%"></div>
+                    <div class="defect-porosity absolute w-2 h-2 top-[52%] left-[34%]" style="border-radius:50%"></div>
+                `
+            },
+            crack: {
+                title: "Fissura Transversal (Crack)",
+                desc: "Uma descontinuidade crítica. Aparece como uma linha fina, escura e dentada. É escura porque é um vazio estreito. As extremidades são tipicamente muito finas e aguçadas. Requer reparação imediata.",
+                html: `
+                    <div class="defect-crack absolute w-12 top-1/2 left-1/2 -translate-x-1/2"></div>
+                `
+            },
+            lof: {
+                title: "Falta de Fusão Lateral",
+                desc: "O metal de soldadura não fundiu com o metal base. Aparece como uma linha reta e escura alinhada com a preparação do chanfro. Um lado da linha é difuso (solda), o outro é muito reto (chanfro original).",
+                html: `
+                    <div class="defect-lof absolute w-24 top-[30%] left-1/2 -translate-x-1/2"></div>
+                `
+            },
+            slag: {
+                title: "Inclusão de Escória",
+                desc: "Material não metálico retido na solda. Aparece como formas irregulares ('batatas'), menos escuras que a porosidade ou fissuras, pois a escória tem alguma densidade, mas é menor que a do aço.",
+                html: `
+                    <div class="defect-slag absolute w-8 h-3 top-1/2 left-[40%]"></div>
+                    <div class="defect-slag absolute w-6 h-2 top-[48%] left-[45%] transform rotate-12"></div>
+                `
+            }
+        };
+
+        function selectDefect(type) {
+            const display = document.getElementById('defect-display');
+            const title = document.getElementById('defect-title');
+            const desc = document.getElementById('defect-desc');
+            const buttons = document.querySelectorAll('.btn-defect');
+            
+            // 1. Reset Visuals
+            display.style.opacity = '0'; // Fade out
+            
+            // 2. Update Content after brief timeout for transition
+            setTimeout(() => {
+                const data = DEFECT_DATA[type];
+                
+                // Set HTML inside the weld bead
+                display.innerHTML = data.html;
+                
+                // Update Text
+                title.innerText = data.title;
+                desc.innerHTML = `<p>${data.desc}</p>`;
+                
+                // Color Logic for Title
+                if (type === 'clean') {
+                    title.className = "text-xl font-bold text-emerald-400 mb-2";
+                } else {
+                    title.className = "text-xl font-bold text-red-400 mb-2";
+                }
+
+                // Fade In
+                display.style.opacity = '1';
+            }, 200);
+
+            // 3. Highlight Active Button
+            buttons.forEach(btn => {
+                // Simple reset of styles handled by CSS focus/group, 
+                // but we can add an 'active' class logic if needed.
+                // For now, reliance on focus state is good for accessibility.
+            });
+        }
+    </script>
+</body>
+</html>

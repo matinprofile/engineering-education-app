@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Process Step Viewer</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom scrollbar style for the description box */
+        #description-content::-webkit-scrollbar {
+            width: 6px;
+        }
+        #description-content::-webkit-scrollbar-thumb {
+            background: #d1d5db; /* gray-300 */
+            border-radius: 3px;
+        }
+        #description-content::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af; /* gray-400 */
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center font-sans p-4">
+
+    <!-- Main Container -->
+    <div id="slide-viewer" class="bg-white rounded-xl shadow-2xl w-full max-w-4xl overflow-hidden">
+        
+        <!-- Header -->
+        <div class="bg-red-800 p-4 text-white">
+            <h1 class="text-2xl font-bold text-center">Manufacturing Process Guide: Single lap joints</h1>
+        </div>
+
+        <!-- Content Area -->
+        <div class="p-6">
+            <!-- NEW: Back Button added here -->
+            <button id="back-to-hub-btn" class="flex items-center space-x-1 mb-6 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg font-semibold hover:bg-gray-300 transition duration-150">
+                <!-- SVG Icon for Back Arrow -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
+                    <path d="M19 12H5"></path><path d="M12 19l-7-7 7-7"></path>
+                </svg>
+                <span>Back to Hub</span>
+            </button>
+            
+            <div class="md:flex md:space-x-6">
+                <!-- Video Player -->
+                <div class="md:w-3/5 w-full mb-6 md:mb-0">
+                    <h2 id="slide-title" class="text-xl font-semibold text-gray-800 mb-3">Substrate preparation</h2>
+                    <div class="relative w-full pb-[56.25%] rounded-lg overflow-hidden shadow-lg border-4 border-gray-200">
+                        <!-- 16:9 Aspect Ratio Container -->
+                        <video id="process-video" class="absolute top-0 left-0 w-full h-full object-cover" controls autoplay muted>
+                            <!-- Video source will be set by JavaScript -->
+                            Your browser does not support the video tag.
+                        </video>
+                    </div>
+                </div>
+
+                <!-- Description & Progress -->
+                <div class="md:w-2/5 w-full flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-lg font-medium text-gray-700 mb-2">Details:</h3>
+                        <div id="description-content" class="bg-gray-50 p-4 rounded-lg h-40 overflow-y-auto text-gray-600 border border-gray-200">
+                            <!-- Description will be loaded here -->
+                        </div>
+                    </div>
+
+                    <div class="mt-6 pt-4 border-t border-gray-200">
+                        <p class="text-sm font-medium text-gray-500 mb-3 text-center">
+                            <!-- Corrected color to red-600 for consistency -->
+                            Progress: <span id="progress-text" class="text-red-600 font-bold">1 of 5</span>
+                        </p>
+                        
+                        <!-- Navigation Buttons -->
+                        <div class="flex space-x-4">
+                            <button id="prev-btn" class="flex-1 px-4 py-2 bg-gray-300 text-gray-800 rounded-lg font-semibold hover:bg-gray-400 transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed">
+                                &larr; Previous Step
+                            </button>
+                            <!-- Corrected color to red-500 and hover to red-600 for consistency -->
+                            <button id="next-btn" class="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed">
+                                Next Step &rarr;
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Slide Data ---
+        // NOTE: Replace the 'videoUrl' placeholders with the actual paths to your video files (e.g., 'videos/step1.mp4').
+        const slides = [
+            {
+                title: "Step 1: Substrate surface preparation",
+                description: "Sanding prepares metal for bonding by using abrasives to remove surface contaminants like rust and loose oxides. It roughens the substrate, creating a better mechanical profile for the adhesive to key into, which significantly enhances bond strength. The process must always be preceded by degreasing and followed by a final cleaning to remove all sanding dust before the adhesive is applied.",
+                videoUrl: "sanding.mp4" 
+            },
+            {
+                title: "Step 2: Adhesive mixing",
+                description: "Mixing two-component adhesives is necessary because the separate resin and hardener are unreactive when stored. Combining them at the correct ratio initiates a crucial chemical reaction called polymerization. This reaction causes the materials to cross-link and cure, transforming the liquid into a durable, solid, high-strength adhesive. Without proper mixing, the epoxy won't cure and will fail to form a strong bond.",
+                videoUrl: "mixing.mp4"
+            },
+            {
+                title: "Step 3: Joint assembly and adhesive application",
+                description: "Joint assembly involves setting the substrates precisely within a steel mould to maintain alignment during adhesive application and curing. Spacers, often calibrated shims or glass beads, are strategically placed to guarantee a uniform, optimal adhesive thickness (bondline gap). The mould itself also defines the necessary overlap length for the joint, ensuring all critical geometric parameters are tightly controlled for maximum joint strength and repeatability.",
+                videoUrl: "application.mp4"
+            },
+            {
+                title: "Step 4: Curing of adhesive and joint finishing",
+                description: "For two-component adhesives, the curing process is initiated by mixing the separate resin and hardener at room temperature, and elevated temperature is then applied primarily as an accelerator to drastically speed up the polymerization reaction, thereby reducing cycle time. In contrast, for many one-component adhesives (such as one-part epoxies), the adhesive is chemically stable until a specific trigger is applied; in these cases, heat is the essential element that acts as the primary main driver, initiating the entire cross-linking process necessary for the adhesive to cure and achieve its final mechanical properties.Once the curing of the adhesive is complete, the bonded joint is carefully removed from the steel mould. This release involves first detaching and removing the spacers that were used to control the bondline geometry. Any excess adhesive that has squeezed out during assembly and curing (known as flash or fillet) is then meticulously trimmed away to ensure the final joint has a clean finish and accurate dimensions for subsequent testing or use.",
+                videoUrl: "curing.mp4"
+            },
+            {
+                title: "Step 5: Testing",
+                description: "The testing step of single lap joints is executed in a universal testing machine (UTM), which applies a controlled tensile load until failure. The specimen is secured using wedge clamps or specific holders. Crucially, tabs are often bonded to the ends of the joint to ensure the load is symmetrically applied, minimizing parasitic bending moments that could influence results. The test characterizes the joint's performance, with brittle adhesives typically showing a sudden, sharp failure, while ductile adhesives exhibit a more gradual failure process indicative of yielding and energy absorption before complete separation.",
+                videoUrl: "test.mp4"
+            }
+        ];
+
+        let currentSlideIndex = 0;
+
+        // --- DOM Elements ---
+        const videoElement = document.getElementById('process-video');
+        const titleElement = document.getElementById('slide-title');
+        const descriptionElement = document.getElementById('description-content');
+        const progressElement = document.getElementById('progress-text');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const backToHubBtn = document.getElementById('back-to-hub-btn'); // New element added
+
+        // --- Core Functions ---
+
+        // Navigates back to the main hub page
+        function goBackToHub() {
+            window.location.href = 'main_hub.html';
+        }
+
+        // Renders the content for the current slide index
+        function renderSlide(index) {
+            const slide = slides[index];
+
+            if (!slide) {
+                console.error("Attempted to render non-existent slide index:", index);
+                return;
+            }
+
+            // Update content
+            titleElement.textContent = slide.title;
+            descriptionElement.textContent = slide.description;
+            videoElement.src = slide.videoUrl;
+
+            // Update progress text
+            progressElement.textContent = `${index + 1} of ${slides.length}`;
+
+            // Update button states
+            updateButtons(index);
+        }
+
+        // Handles button enabling/disabling
+        function updateButtons(index) {
+            prevBtn.disabled = index === 0;
+            nextBtn.disabled = index === slides.length - 1;
+        }
+
+        // Moves to the next slide
+        function nextSlide() {
+            if (currentSlideIndex < slides.length - 1) {
+                currentSlideIndex++;
+                renderSlide(currentSlideIndex);
+            }
+        }
+
+        // Moves to the previous slide
+        function prevSlide() {
+            if (currentSlideIndex > 0) {
+                currentSlideIndex--;
+                renderSlide(currentSlideIndex);
+            }
+        }
+
+        // --- Event Listeners ---
+        prevBtn.addEventListener('click', prevSlide);
+        nextBtn.addEventListener('click', nextSlide);
+        backToHubBtn.addEventListener('click', goBackToHub); // New listener added
+
+        // Initialize the viewer
+        document.addEventListener('DOMContentLoaded', () => {
+            renderSlide(currentSlideIndex);
+        });
+
+    </script>
+</body>
+</html>

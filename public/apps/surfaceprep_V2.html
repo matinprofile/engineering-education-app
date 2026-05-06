@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de preparação de bordos</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Three.js (3D Library) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- OrbitControls -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/controls/OrbitControls.js"></script>
+
+    <style>
+        body {
+            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            overflow-x: hidden; /* Prevent scroll on canvas interaction */
+        }
+        
+        /* Canvas Container */
+        #canvas-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: #111; /* Dark background for contrast */
+            cursor: grab; /* Rotate view with mouse */
+            overflow: hidden;
+        }
+
+        /* Feedback Overlay */
+        #feedback-overlay {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            pointer-events: none;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+            transition: opacity 0.2s;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-900 text-slate-100 flex flex-col items-center p-4 sm:p-6">
+
+    <!-- Header -->
+    <header class="w-full max-w-7xl mb-6 flex flex-col md:flex-row items-center justify-between gap-6 border-b border-slate-800 pb-6">
+        <!-- LOGO -->
+        <div class="flex-shrink-0">
+            <a href="https://lucasgroup.pt/" target="_blank" title="Visitar Lucas Group">
+                <img src="logo.jpg" alt="Lucas Group Logo" class="w-[181px] h-[173px] object-contain bg-white/5 rounded-lg border border-slate-700 hover:opacity-90 transition-opacity">
+            </a>
+        </div>
+
+        <!-- TITLE -->
+        <div class="flex-grow text-center md:text-left md:pl-10">
+            <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight text-orange-500 flex items-center justify-center md:justify-start gap-3">
+                <i data-lucide="flame" class="w-10 h-10"></i>
+                Simulador de preparação de bordos
+            </h1>
+            <p class="text-slate-400 mt-2 text-lg">Juntas de topo para soldadura (V, duplo V, U, duplo U, quadrado)</p>
+            <p class="text-slate-500 text-sm mt-1">Ajuste a geometria do chanfro e veja a área a preencher com metal de soldadura.</p>
+        </div>
+    </header>
+
+    <!-- Main Interface -->
+    <main class="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-3 gap-6 h-[600px]">
+
+        <!-- LEFT PANEL: 3D Environment -->
+        <div class="lg:col-span-2 bg-black rounded-xl border border-slate-700 shadow-2xl overflow-hidden flex flex-col relative group">
+            
+            <!-- 3D Canvas -->
+            <div id="canvas-container">
+                <!-- Three.js injects canvas here -->
+                
+                <!-- Feedback HUD -->
+                <div id="feedback-overlay" class="bg-black/60 backdrop-blur px-4 py-2 rounded-full border border-white/20">
+                    <span id="feedback-text" class="font-bold text-sm sm:text-base tracking-wide uppercase text-orange-400">
+                        V SIMPLES
+                    </span>
+                </div>
+
+                <!-- Instructions Overlay (Fades out on hover) -->
+                <div class="absolute inset-0 flex items-center justify-center bg-black/70 pointer-events-none transition-opacity duration-500 group-hover:opacity-0">
+                    <div class="text-center px-4">
+                        <i data-lucide="mouse-pointer-2" class="w-12 h-12 mx-auto mb-2 text-orange-500 animate-bounce"></i>
+                        <h3 class="text-2xl font-bold">Interaja com o rato</h3>
+                        <p class="text-slate-300 text-sm">Clique e arraste para rodar a vista. Use a roda do rato para zoom.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Stats -->
+            <div class="bg-slate-900 p-2 flex justify-between px-4 text-xs font-mono text-slate-500 border-t border-slate-800">
+                <span>Visualização 3D da secção do chanfro</span>
+                <span>Unidades: mm (secção) · mm² / cm² (área)</span>
+            </div>
+        </div>
+
+        <!-- RIGHT PANEL: Controls + Results -->
+        <div class="lg:col-span-1 flex flex-col gap-6">
+            
+            <!-- Control Panel -->
+            <div class="bg-slate-800 rounded-xl border border-slate-700 p-6 shadow-lg">
+                <h3 class="text-orange-400 font-bold mb-6 flex items-center gap-2 border-b border-slate-700 pb-2">
+                    <i data-lucide="sliders" class="w-5 h-5"></i>
+                    Parâmetros geométricos da junta
+                </h3>
+
+                <!-- Tipo de junta -->
+                <div class="mb-4">
+                    <label for="joint-type" class="text-sm font-semibold text-slate-300 mb-1 flex items-center justify-between">
+                        <span>Tipo de preparação</span>
+                        <span id="joint-type-label" class="text-[11px] uppercase tracking-wider text-slate-500">V simples</span>
+                    </label>
+                    <select id="joint-type" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-1 focus:ring-orange-500">
+                        <option value="singleV">V simples</option>
+                        <option value="doubleV">Duplo V</option>
+                        <option value="singleU">U simples</option>
+                        <option value="doubleU">Duplo U</option>
+                        <option value="square">Quadrado (sem chanfro)</option>
+                    </select>
+                    <p id="mode-desc" class="text-xs text-slate-400 mt-2 italic">
+                        Chanfro em V aberto de um só lado. Utilizado em espessuras médias com acesso pela face superior.
+                    </p>
+                </div>
+
+                <!-- Espessura -->
+                <div class="mb-4" data-param="thickness">
+                    <div class="flex justify-between mb-1">
+                        <label class="text-sm font-semibold text-slate-300">Espessura da chapa</label>
+                        <span id="thickness-value" class="text-xs font-mono text-orange-400">12 mm</span>
+                    </div>
+                    <input type="range" id="thickness-slider" min="4" max="40" value="12" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-orange-500">
+                    <div class="flex justify-between text-[10px] text-slate-500 mt-1">
+                        <span>4 mm</span>
+                        <span>40 mm</span>
+                    </div>
+                </div>
+
+                <!-- Ângulo (para V / duplo V) -->
+                <div class="mb-4" data-param="angle">
+                    <div class="flex justify-between mb-1">
+                        <label class="text-sm font-semibold text-slate-300">Ângulo de abertura (incluído)</label>
+                        <span id="angle-value" class="text-xs font-mono text-orange-400">60°</span>
+                    </div>
+                    <input type="range" id="angle-slider" min="30" max="90" value="60" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-orange-500">
+                    <div class="flex justify-between text-[10px] text-slate-500 mt-1">
+                        <span>30°</span>
+                        <span>90°</span>
+                    </div>
+                </div>
+
+                <!-- Folga de raiz (para V / duplo V / quadrado) -->
+                <div class="mb-4" data-param="rootGap">
+                    <div class="flex justify-between mb-1">
+                        <label class="text-sm font-semibold text-slate-300">Folga de raiz</label>
+                        <span id="rootgap-value" class="text-xs font-mono text-orange-400">2 mm</span>
+                    </div>
+                    <input type="range" id="rootgap-slider" min="0" max="6" value="2" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-orange-500">
+                    <div class="flex justify-between text-[10px] text-slate-500 mt-1">
+                        <span>0 mm</span>
+                        <span>6 mm</span>
+                    </div>
+                </div>
+
+                <!-- Raio (para U / duplo U) -->
+                <div class="mb-4 hidden" data-param="radius">
+                    <div class="flex justify-between mb-1">
+                        <label class="text-sm font-semibold text-slate-300">Raio da raiz (U)</label>
+                        <span id="radius-value" class="text-xs font-mono text-orange-400">6 mm</span>
+                    </div>
+                    <input type="range" id="radius-slider" min="2" max="20" value="6" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-orange-500">
+                    <div class="flex justify-between text-[10px] text-slate-500 mt-1">
+                        <span>2 mm</span>
+                        <span>20 mm</span>
+                    </div>
+                </div>
+
+                <!-- Comprimento da junta -->
+                <div class="mb-2" data-param="length">
+                    <div class="flex justify-between mb-1">
+                        <label class="text-sm font-semibold text-slate-300">Comprimento da junta considerado</label>
+                        <span id="length-value" class="text-xs font-mono text-orange-400">150 mm</span>
+                    </div>
+                    <input type="range" id="length-slider" min="50" max="300" value="150" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-orange-500">
+                    <div class="flex justify-between text-[10px] text-slate-500 mt-1">
+                        <span>50 mm</span>
+                        <span>300 mm</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analysis / Results Box -->
+            <div class="bg-slate-800 rounded-xl border border-slate-700 p-6 shadow-lg flex-grow">
+                <h3 class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-3">Resultados e interpretação</h3>
+                
+                <p class="text-[11px] text-slate-400 mb-4" id="result-comment">
+                    Ajuste a espessura, o tipo de chanfro e a folga de raiz para perceber como varia a área a preencher e o volume de metal depositado.
+                </p>
+
+                <div class="space-y-4">
+                    <!-- Tipo de junta -->
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded bg-sky-500/20 flex items-center justify-center text-sky-400">
+                            <i data-lucide="shapes" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-slate-200">Tipo de junta</p>
+                            <p class="text-[11px] text-slate-400" id="result-type">V simples</p>
+                        </div>
+                    </div>
+
+                    <!-- Área -->
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded bg-emerald-500/20 flex items-center justify-center text-emerald-400">
+                            <i data-lucide="ruler" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-slate-200">Área da secção a preencher</p>
+                            <p class="text-[11px] text-slate-200">
+                                <span id="result-area-mm2" class="font-mono">---</span>
+                                <span id="result-area-cm2" class="ml-1 text-slate-400"></span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Volume -->
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded bg-indigo-500/20 flex items-center justify-center text-indigo-400">
+                            <i data-lucide="box" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-slate-200">Volume de metal de soldadura</p>
+                            <p class="text-[11px] text-slate-200" id="result-volume">---</p>
+                        </div>
+                    </div>
+
+                    <!-- Massa aproximada -->
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded bg-yellow-500/20 flex items-center justify-center text-yellow-400">
+                            <i data-lucide="scale" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-slate-200">Massa aproximada de metal depositado (aço)</p>
+                            <p class="text-[11px] text-slate-200" id="result-mass">---</p>
+                            <p class="text-[10px] text-slate-500">Assumindo densidade ≈ 7,85 g/cm³.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- LOGIC -->
+    <script>
+        // Init Icons
+        lucide.createIcons();
+
+        // --- CONSTANTES E MAPEAMENTO ---
+        const MM_TO_UNITS = 0.05; // factor de escala mm -> unidades Three.js
+
+        const JOINT_TYPES = {
+            singleV: {
+                label: 'V simples',
+                description: 'Chanfro em V aberto de um só lado. Usado em espessuras médias com acesso pela face superior.',
+                params: ['thickness', 'angle', 'rootGap', 'length']
+            },
+            doubleV: {
+                label: 'Duplo V',
+                description: 'Chanfragem em X (V dos dois lados). Reduz o volume de enchimento em chapas grossas.',
+                params: ['thickness', 'angle', 'rootGap', 'length']
+            },
+            singleU: {
+                label: 'U simples',
+                description: 'Raiz arredondada. Para a mesma espessura, requer menos metal de soldadura que um V simples.',
+                params: ['thickness', 'radius', 'length']
+            },
+            doubleU: {
+                label: 'Duplo U',
+                description: 'Preparação com raios superior e inferior, simétrica. Indicada para chapas espessas e materiais de alto custo.',
+                params: ['thickness', 'radius', 'length']
+            },
+            square: {
+                label: 'Quadrado (sem chanfro)',
+                description: 'Faces rectas com folga de raiz. Adequado apenas para pequenas espessuras.',
+                params: ['thickness', 'rootGap', 'length']
+            }
+        };
+
+        // --- VARIÁVEIS THREE.JS ---
+        let scene, camera, renderer, controls, weldGroup;
+
+        // --- REFERÊNCIAS UI ---
+        const container = document.getElementById('canvas-container');
+        const feedbackEl = document.getElementById('feedback-text');
+
+        const jointTypeSelect   = document.getElementById('joint-type');
+        const jointTypeLabel    = document.getElementById('joint-type-label');
+        const modeDesc          = document.getElementById('mode-desc');
+
+        const thicknessSlider   = document.getElementById('thickness-slider');
+        const thicknessValue    = document.getElementById('thickness-value');
+
+        const angleSlider       = document.getElementById('angle-slider');
+        const angleValue        = document.getElementById('angle-value');
+
+        const rootGapSlider     = document.getElementById('rootgap-slider');
+        const rootGapValue      = document.getElementById('rootgap-value');
+
+        const radiusSlider      = document.getElementById('radius-slider');
+        const radiusValue       = document.getElementById('radius-value');
+
+        const lengthSlider      = document.getElementById('length-slider');
+        const lengthValue       = document.getElementById('length-value');
+
+        const resultType        = document.getElementById('result-type');
+        const resultAreaMm2     = document.getElementById('result-area-mm2');
+        const resultAreaCm2     = document.getElementById('result-area-cm2');
+        const resultVolume      = document.getElementById('result-volume');
+        const resultMass        = document.getElementById('result-mass');
+
+        const nf0 = new Intl.NumberFormat('pt-PT', { maximumFractionDigits: 0 });
+        const nf1 = new Intl.NumberFormat('pt-PT', { maximumFractionDigits: 1 });
+        const nf2 = new Intl.NumberFormat('pt-PT', { maximumFractionDigits: 2 });
+
+        // --- FUNÇÕES THREE.JS ---
+
+        function initThree() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x020617);
+
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+
+            camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 1000);
+            camera.position.set(60, 50, 70);
+            camera.lookAt(0, 10, 0);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(width, height);
+            renderer.setPixelRatio(window.devicePixelRatio || 1);
+            renderer.shadowMap.enabled = true;
+            container.appendChild(renderer.domElement);
+
+            // Luzes
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+            scene.add(ambientLight);
+
+            const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
+            dirLight.position.set(30, 60, 40);
+            dirLight.castShadow = true;
+            scene.add(dirLight);
+
+            const hemiLight = new THREE.HemisphereLight(0x64748b, 0x020617, 0.6);
+            scene.add(hemiLight);
+
+            // Mesa / Plano
+            const planeGeo = new THREE.PlaneGeometry(200, 200);
+            const planeMat = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.9, metalness: 0 });
+            const plane = new THREE.Mesh(planeGeo, planeMat);
+            plane.rotation.x = -Math.PI / 2;
+            plane.position.y = 0;
+            plane.receiveShadow = true;
+            scene.add(plane);
+
+            // Grelha
+            const grid = new THREE.GridHelper(200, 20, 0x334155, 0x1f2937);
+            grid.position.y = 0.01;
+            scene.add(grid);
+
+            // Controlo de órbita
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.08;
+            controls.target.set(0, 10, 0);
+            controls.update();
+
+            window.addEventListener('resize', onWindowResize);
+
+            // Geometria inicial
+            updateJointGeometry();
+
+            animate();
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            if (controls) controls.update();
+            renderer.render(scene, camera);
+        }
+
+        function onWindowResize() {
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height);
+        }
+
+        // --- GEOMETRIA DAS JUNTAS ---
+
+        function buildSingleVShapes(params) {
+            const shapes = [];
+            const T = params.thickness;
+            const g = Math.max(params.rootGap, 0.1); // evitar degeneração
+            const alpha = params.angle * Math.PI / 180;
+
+            const wTop = g + 2 * T * Math.tan(alpha / 2);
+            const halfTop = wTop / 2;
+            const halfGap = g / 2;
+
+            const s = new THREE.Shape();
+            s.moveTo(-halfTop, T);
+            s.lineTo(halfTop, T);
+            s.lineTo(halfGap, 0);
+            s.lineTo(-halfGap, 0);
+            s.closePath();
+
+            shapes.push(s);
+            return shapes;
+        }
+
+        function buildDoubleVShapes(params) {
+            const shapes = [];
+            const T = params.thickness;
+            const h = T / 2;
+            const g = Math.max(params.rootGap, 0.1);
+            const alpha = params.angle * Math.PI / 180;
+
+            const wMid = g + 2 * h * Math.tan(alpha / 2);
+            const halfMid = wMid / 2;
+            const halfGap = g / 2;
+
+            // Parte superior
+            const sTop = new THREE.Shape();
+            sTop.moveTo(-halfGap, T);
+            sTop.lineTo(halfGap, T);
+            sTop.lineTo(halfMid, h);
+            sTop.lineTo(-halfMid, h);
+            sTop.closePath();
+            shapes.push(sTop);
+
+            // Parte inferior
+            const sBot = new THREE.Shape();
+            sBot.moveTo(-halfMid, h);
+            sBot.lineTo(halfMid, h);
+            sBot.lineTo(halfGap, 0);
+            sBot.lineTo(-halfGap, 0);
+            sBot.closePath();
+            shapes.push(sBot);
+
+            return shapes;
+        }
+
+        function buildSingleUShapes(params) {
+            const shapes = [];
+            const T = params.thickness;
+            let R = params.radius;
+            R = Math.min(R, T - 1); // garantir que cabe na espessura
+            const segments = 64;
+
+            const s = new THREE.Shape();
+            s.moveTo(-R, T);
+            s.lineTo(R, T);
+            s.lineTo(R, 0);
+
+            for (let i = 1; i <= segments; i++) {
+                const theta = (i / segments) * Math.PI; // 0..π
+                const x = R * Math.cos(theta);
+                const y = R * Math.sin(theta);
+                s.lineTo(x, y);
+            }
+
+            s.lineTo(-R, 0);
+            s.closePath();
+
+            shapes.push(s);
+            return shapes;
+        }
+
+        function buildDoubleUShapes(params) {
+            const shapes = [];
+            const T = params.thickness;
+            let R = params.radius;
+            const maxR = T / 2 - 0.5;
+            if (R > maxR) R = maxR;
+            const segments = 64;
+
+            const topCenterY = T - R; // centro do arco superior
+            const bottomCenterY = R;  // centro do arco inferior
+
+            const s = new THREE.Shape();
+
+            // Começa no ponto esquerdo do arco superior
+            s.moveTo(-R, topCenterY);
+
+            // Arco superior (concavidade para baixo): θ de π -> 0
+            for (let i = 0; i <= segments; i++) {
+                const theta = Math.PI - (i / segments) * Math.PI; // π..0
+                const x = R * Math.cos(theta);
+                const y = topCenterY + R * Math.sin(theta);
+                s.lineTo(x, y);
+            }
+
+            // Lado direito descendo até ao arco inferior
+            s.lineTo(R, bottomCenterY);
+
+            // Arco inferior (concavidade para cima): θ de 0 -> π
+            for (let i = 0; i <= segments; i++) {
+                const theta = (i / segments) * Math.PI; // 0..π
+                const x = R * Math.cos(theta);
+                const y = bottomCenterY + R * Math.sin(theta);
+                s.lineTo(x, y);
+            }
+
+            // Lado esquerdo a subir até ao ponto inicial
+            s.lineTo(-R, topCenterY);
+            s.closePath();
+
+            shapes.push(s);
+            return shapes;
+        }
+
+        function buildSquareShapes(params) {
+            const shapes = [];
+            const T = params.thickness;
+            const g = Math.max(params.rootGap, 0.1);
+            const halfGap = g / 2;
+
+            const s = new THREE.Shape();
+            s.moveTo(-halfGap, 0);
+            s.lineTo(halfGap, 0);
+            s.lineTo(halfGap, T);
+            s.lineTo(-halfGap, T);
+            s.closePath();
+
+            shapes.push(s);
+            return shapes;
+        }
+
+        // --- LIGAÇÃO GEOMETRIA <-> CENA ---
+
+        function getCurrentParams() {
+            return {
+                jointType: jointTypeSelect.value,
+                thickness: parseFloat(thicknessSlider.value),
+                angle: parseFloat(angleSlider.value),
+                rootGap: parseFloat(rootGapSlider.value),
+                radius: parseFloat(radiusSlider.value),
+                length: parseFloat(lengthSlider.value)
+            };
+        }
+
+        function disposeGroup(group) {
+            if (!group) return;
+            group.traverse(obj => {
+                if (obj.geometry) obj.geometry.dispose();
+                if (obj.material) {
+                    if (Array.isArray(obj.material)) {
+                        obj.material.forEach(m => m.dispose());
+                    } else {
+                        obj.material.dispose();
+                    }
+                }
+            });
+        }
+
+        function updateJointGeometry() {
+            const params = getCurrentParams();
+
+            if (!scene) return;
+
+            if (weldGroup) {
+                scene.remove(weldGroup);
+                disposeGroup(weldGroup);
+            }
+
+            weldGroup = new THREE.Group();
+            let totalAreaMm2 = 0;
+
+            const mat = new THREE.MeshStandardMaterial({
+                color: 0x38bdf8,
+                transparent: true,
+                opacity: 0.9,
+                metalness: 0.1,
+                roughness: 0.3
+            });
+
+            const jointLengthMM = params.length;
+
+            function addShape(shape) {
+                const extrudeSettings = {
+                    depth: jointLengthMM,
+                    bevelEnabled: false,
+                    steps: 1
+                };
+
+                const geom = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+                // centrar ao longo de Z
+                geom.translate(0, 0, -jointLengthMM / 2);
+
+                const mesh = new THREE.Mesh(geom, mat);
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+                weldGroup.add(mesh);
+
+                const edgesGeom = new THREE.EdgesGeometry(geom);
+                const edgesMat = new THREE.LineBasicMaterial({ color: 0xffffff });
+                const edges = new THREE.LineSegments(edgesGeom, edgesMat);
+                weldGroup.add(edges);
+
+                const pts = shape.getPoints(128);
+                const area = Math.abs(THREE.ShapeUtils.area(pts));
+                totalAreaMm2 += area;
+            }
+
+            let shapes = [];
+            switch (params.jointType) {
+                case 'singleV':
+                    shapes = buildSingleVShapes(params);
+                    break;
+                case 'doubleV':
+                    shapes = buildDoubleVShapes(params);
+                    break;
+                case 'singleU':
+                    shapes = buildSingleUShapes(params);
+                    break;
+                case 'doubleU':
+                    shapes = buildDoubleUShapes(params);
+                    break;
+                case 'square':
+                    shapes = buildSquareShapes(params);
+                    break;
+            }
+
+            shapes.forEach(addShape);
+
+            // Escala mm -> unidades da cena
+            const s = MM_TO_UNITS;
+            weldGroup.scale.set(s, s, s);
+            weldGroup.position.y = 8; // levanta ligeiramente acima da mesa
+
+            scene.add(weldGroup);
+
+            // Actualizar resultados
+            updateResults(totalAreaMm2, jointLengthMM);
+
+            // Actualizar overlay
+            const cfg = JOINT_TYPES[params.jointType];
+            feedbackEl.innerText = (cfg.label || '').toUpperCase();
+        }
+
+        function updateResults(areaMm2, lengthMm) {
+            const typeKey = jointTypeSelect.value;
+            const cfg = JOINT_TYPES[typeKey];
+
+            resultType.innerText = cfg.label;
+            resultAreaMm2.innerText = nf0.format(areaMm2) + ' mm²';
+
+            const areaCm2 = areaMm2 / 100; // 1 cm² = 100 mm²
+            resultAreaCm2.innerText = '(' + nf1.format(areaCm2) + ' cm²)';
+
+            const volumeMm3 = areaMm2 * lengthMm;
+            const volumeCm3 = volumeMm3 / 1000; // 1 cm³ = 1000 mm³
+            const lengthCm = lengthMm / 10;
+
+            resultVolume.innerText = nf1.format(volumeCm3) + ' cm³ para L = ' + nf1.format(lengthCm) + ' cm';
+
+            const massKg = volumeCm3 * 7.85 / 1000; // 7,85 g/cm³ -> kg
+            resultMass.innerText = nf2.format(massKg) + ' kg de metal de soldadura';
+
+        }
+
+        // --- UI / CONTROLOS ---
+
+        function updateParamVisibility() {
+            const type = jointTypeSelect.value;
+            const cfg = JOINT_TYPES[type];
+
+            document.querySelectorAll('[data-param]').forEach(el => el.classList.add('hidden'));
+            cfg.params.forEach(p => {
+                document.querySelectorAll('[data-param="' + p + '"]').forEach(el => el.classList.remove('hidden'));
+            });
+
+            jointTypeLabel.innerText = cfg.label;
+            modeDesc.innerText = cfg.description;
+
+            // Ajustar limites de raio em função da espessura
+            clampRadius();
+
+            // Highlight overlay
+            feedbackEl.innerText = cfg.label.toUpperCase();
+        }
+
+        function clampRadius() {
+            const type = jointTypeSelect.value;
+            const T = parseFloat(thicknessSlider.value);
+            const minR = parseFloat(radiusSlider.min);
+            let maxR;
+
+            if (type === 'doubleU') {
+                maxR = T / 2 - 0.5;
+            } else {
+                maxR = T - 1;
+            }
+
+            if (maxR < minR) maxR = minR;
+
+            radiusSlider.max = Math.floor(maxR).toString();
+            if (parseFloat(radiusSlider.value) > maxR) {
+                radiusSlider.value = Math.floor(maxR).toString();
+            }
+            radiusValue.innerText = radiusSlider.value + ' mm';
+        }
+
+        function initUI() {
+            jointTypeSelect.addEventListener('change', () => {
+                updateParamVisibility();
+                updateJointGeometry();
+            });
+
+            thicknessSlider.addEventListener('input', () => {
+                thicknessValue.innerText = thicknessSlider.value + ' mm';
+                clampRadius();
+                updateJointGeometry();
+            });
+
+            angleSlider.addEventListener('input', () => {
+                angleValue.innerText = angleSlider.value + '°';
+                updateJointGeometry();
+            });
+
+            rootGapSlider.addEventListener('input', () => {
+                rootGapValue.innerText = rootGapSlider.value + ' mm';
+                updateJointGeometry();
+            });
+
+            radiusSlider.addEventListener('input', () => {
+                radiusValue.innerText = radiusSlider.value + ' mm';
+                updateJointGeometry();
+            });
+
+            lengthSlider.addEventListener('input', () => {
+                lengthValue.innerText = lengthSlider.value + ' mm';
+                updateJointGeometry();
+            });
+
+            // Valores iniciais
+            thicknessValue.innerText = thicknessSlider.value + ' mm';
+            angleValue.innerText = angleSlider.value + '°';
+            rootGapValue.innerText = rootGapSlider.value + ' mm';
+            radiusValue.innerText = radiusSlider.value + ' mm';
+            lengthValue.innerText = lengthSlider.value + ' mm';
+
+            updateParamVisibility();
+        }
+
+        // Inicialização
+        initUI();
+        initThree();
+    </script>
+</body>
+</html>

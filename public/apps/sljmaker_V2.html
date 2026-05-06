@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Adhesive Single Lap Joint — Interactive Tutorial</title>
+  <style>
+    :root{--accent:#2563eb;--muted:#6b7280}
+    body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial;background:#0f172a;color:#e6eef8;display:flex;height:100vh}
+    aside{width:380px;background:#071028;padding:18px;box-shadow:4px 0 30px rgba(2,6,23,.6);overflow:auto}
+    main{flex:1;display:flex;flex-direction:column}
+    h1{margin:0 0 8px;font-size:18px}
+    p{color:var(--muted);margin:6px 0}
+    .steps{list-style:none;padding:0;margin:12px 0}
+    .steps li{padding:10px;border-radius:8px;margin-bottom:8px;background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);cursor:pointer}
+    .steps li.active{outline:2px solid rgba(37,99,235,.15);box-shadow:inset 0 0 0 1px rgba(37,99,235,.08)}
+    .controls{display:flex;gap:8px;margin-top:10px}
+    button{background:var(--accent);border:none;color:white;padding:8px 12px;border-radius:8px;cursor:pointer}
+    button.ghost{background:transparent;border:1px solid rgba(255,255,255,.06);color:var(--muted)}
+    #canvas-wrap{flex:1;position:relative}
+    canvas{display:block;width:100%;height:100%}
+    .panel{position:absolute;left:12px;bottom:12px;background:rgba(3,7,18,.7);padding:10px;border-radius:8px}
+    .log{font-size:13px;color:#cbd5e1;max-height:220px;overflow:auto;padding:8px;background:rgba(255,255,255,0.02);border-radius:6px}
+    .meter{height:10px;background:#05203a;border-radius:6px;overflow:hidden}
+    .meter > i{display:block;height:100%;background:linear-gradient(90deg,#34d399,#60a5fa);width:0%}
+    label{font-size:13px;color:var(--muted)}
+    .row{display:flex;gap:8px;align-items:center}
+    footer{padding:10px;text-align:center;font-size:13px;color:var(--muted)}
+    .warning{color:#ffcc00}
+    a.small{color:var(--accent);font-size:12px}
+  </style>
+</head>
+<body>
+  <aside>
+    <h1>Single-lap joint — step-by-step</h1>
+    <p>A fully client-side single-file interactive tutorial for assembling an adhesive single-lap joint (steel substrates). Use the 3D view to perform each step.</p>
+
+    <ul class="steps" id="steps">
+      <li data-step="1" class="active"><strong>Step 1 — Prepare substrates</strong><div style="font-size:12px;color:var(--muted)">Pick, abrade (crosshatch) and clean with acetone towel — do not pass towel twice on same spot.</div></li>
+      <li data-step="2"><strong>Step 2 — Set mould & shims</strong><div style="font-size:12px;color:var(--muted)">Place substrates in mould with pins and 0.2 mm spacer shims to create gap and 25 mm overlap.</div></li>
+      <li data-step="3"><strong>Step 3 — Mix adhesive</strong><div style="font-size:12px;color:var(--muted)">Weigh 10 g resin (A) + 4 g hardener (B), mix in centrifugal mixer 10 s.</div></li>
+      <li data-step="4"><strong>Step 4 — Apply adhesive & assemble</strong><div style="font-size:12px;color:var(--muted)">Apply spatula, lower top edge first then opposite, close mould.</div></li>
+      <li data-step="5"><strong>Step 5 — Cure & finish</strong><div style="font-size:12px;color:var(--muted)">Cure 24 hours (accelerated simulation here) until solid joint.</div></li>
+    </ul>
+
+    <div class="controls">
+      <button id="prevBtn" class="ghost">◀ Prev</button>
+      <button id="nextBtn">Next ▶</button>
+      <button id="resetBtn" class="ghost">Reset</button>
+    </div>
+
+    <hr style="border:none;height:1px;background:rgba(255,255,255,0.02);margin:12px 0">
+
+    <div id="stepContent">
+      <h3 id="stepTitle">Step 1 — Prepare substrates</h3>
+      <div id="stepInstructions" class="log">Pick two steel substrates (2 mm × 25 mm × 120 mm). Use the crosshatch sandpaper tool to abrade the surfaces, then clean with an acetone-soaked paper towel. <span class="warning">Do not pass the towel twice over the same spot.</span></div>
+    </div>
+
+    <div style="margin-top:12px">
+      <label>Simulation log</label>
+      <div id="logBox" class="log"></div>
+    </div>
+
+    <div style="margin-top:12px">
+      <label>Adhesive mix</label>
+      <div class="row" style="margin-top:6px">
+        <div>
+          <div style="font-size:13px">Resin A: <b id="resin">10</b> g</div>
+          <div style="font-size:13px">Hardener B: <b id="hardener">4</b> g</div>
+        </div>
+        <div style="margin-left:auto">
+          <button id="mixBtn" class="ghost">Mix (10 s)</button>
+        </div>
+      </div>
+      <div style="margin-top:8px">
+        <div class="meter"><i id="mixMeter"></i></div>
+      </div>
+    </div>
+
+    <footer>
+      Built for learning. This is a simulation and not a replacement for lab training. Handle acetone and adhesives safely (ventilation, PPE).
+    </footer>
+  </aside>
+
+  <main>
+    <div id="canvas-wrap">
+      <canvas id="scene"></canvas>
+      <div class="panel">
+        <div style="font-size:13px;margin-bottom:6px">Controls: Rotate/Zoom: mouse. Select objects: click. Action buttons appear per step.</div>
+        <div id="actionArea"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Use ES module imports for three and OrbitControls to avoid the "not a constructor" issue -->
+  <script type="module">
+    import * as THREE from 'https://unpkg.com/three@0.152.2/build/three.module.js';
+    import { OrbitControls } from 'https://unpkg.com/three@0.152.2/examples/jsm/controls/OrbitControls.js';
+
+    // Units: mm. We'll scale down for visualization.
+    const SCALE = 0.5; // 1 mm -> 0.5 units
+    const canvas = document.getElementById('scene');
+    const renderer = new THREE.WebGLRenderer({canvas, antialias:true});
+    renderer.setClearColor(0x071028);
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(45,2,0.1,2000);
+    camera.position.set(0,80,260);
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+
+    // lights
+    const dirLight = new THREE.DirectionalLight(0xffffff,1);
+    dirLight.position.set(50,100,50);scene.add(dirLight);
+    scene.add(new THREE.AmbientLight(0xffffff,0.25));
+
+    // floor
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(600,400), new THREE.MeshStandardMaterial({color:0x031528,side:THREE.DoubleSide}));
+    floor.rotation.x = -Math.PI/2;floor.position.y=-1;scene.add(floor);
+
+    // Helper: create substrate
+    function createSubstrate(name,y){
+      const W = 25*SCALE, L = 120*SCALE, T = 2*SCALE;
+      const geo = new THREE.BoxGeometry(L,T,W);
+      const mat = new THREE.MeshStandardMaterial({color:0x8b949e,metalness:0.8,roughness:0.4});
+      const mesh = new THREE.Mesh(geo,mat);
+      mesh.rotation.x = Math.PI/2; // align plane
+      mesh.name = name; mesh.userData = {abraded:false, cleaned:false};
+      mesh.position.set(0,y,0);
+      return mesh;
+    }
+
+    // renamed variables to avoid conflicts with browser globals (e.g. `top`)
+    const bottomSubstrate = createSubstrate('Bottom',0);
+    const topSubstrate = createSubstrate('Top',8*SCALE+0.2*SCALE); // slightly above
+    scene.add(bottomSubstrate); scene.add(topSubstrate);
+
+    // mould base and pins
+    const mould = new THREE.Group();
+    const base = new THREE.Mesh(new THREE.BoxGeometry(160*SCALE,6*SCALE,80*SCALE), new THREE.MeshStandardMaterial({color:0x0b2a3a,metalness:0.2,roughness:0.6}));
+    base.position.y=-3*SCALE; mould.add(base);
+    // pins
+    function addPin(x,z){ const p = new THREE.Mesh(new THREE.CylinderGeometry(1.5*SCALE,1.5*SCALE,18*SCALE,12), new THREE.MeshStandardMaterial({color:0xd1d5db})); p.rotation.x=Math.PI/2; p.position.set(x,2*SCALE,z); return p }
+    mould.add(addPin(-40*SCALE,-12*SCALE)); mould.add(addPin(-40*SCALE,12*SCALE)); mould.add(addPin(40*SCALE,-12*SCALE)); mould.add(addPin(40*SCALE,12*SCALE));
+    scene.add(mould);
+
+    // spacer shim (0.2 mm thick)
+    const shim = new THREE.Mesh(new THREE.BoxGeometry(10*SCALE,0.2*SCALE,6*SCALE), new THREE.MeshStandardMaterial({color:0xffcc66}));
+    shim.position.set(0, (2*SCALE + 0.1*SCALE), 18*SCALE);
+    shim.name = 'Shim'; scene.add(shim);
+
+    // spatula
+    const spatula = new THREE.Mesh(new THREE.BoxGeometry(6*SCALE,1*SCALE,28*SCALE), new THREE.MeshStandardMaterial({color:0x997a5a}));
+    spatula.position.set(-90*SCALE,30*SCALE, -40*SCALE); spatula.name='Spatula'; scene.add(spatula);
+
+    // adhesive paint group
+    const adhesiveGroup = new THREE.Group(); scene.add(adhesiveGroup);
+
+    // raycaster for interactions
+    const raycaster = new THREE.Raycaster(); const mouse = new THREE.Vector2();
+    function onPointer(e){ const rect=renderer.domElement.getBoundingClientRect(); mouse.x = ((e.clientX-rect.left)/rect.width)*2-1; mouse.y = -((e.clientY-rect.top)/rect.height)*2+1; }
+    renderer.domElement.addEventListener('pointermove',onPointer);
+
+    // resize
+    function resize(){ const w=canvas.clientWidth, h=canvas.clientHeight; if(canvas.width!==w||canvas.height!==h){renderer.setSize(w,h,false); camera.aspect = w/h; camera.updateProjectionMatrix();}} window.addEventListener('resize',resize);
+
+    // UI / steps logic
+    const steps = document.querySelectorAll('#steps li'); let active=1; function setActive(n){active=n; steps.forEach(s=>s.classList.toggle('active',Number(s.dataset.step)===n)); document.getElementById('stepTitle').innerText = document.querySelector('[data-step="'+n+'"] strong').innerText; updateStepUI();}
+    steps.forEach(s=>s.addEventListener('click',()=>setActive(Number(s.dataset.step)))); document.getElementById('nextBtn').addEventListener('click',()=>setActive(Math.min(5,active+1))); document.getElementById('prevBtn').addEventListener('click',()=>setActive(Math.max(1,active-1)));
+    document.getElementById('resetBtn').addEventListener('click',resetAll);
+
+    function log(msg){ const box=document.getElementById('logBox'); box.innerHTML = `<div style="margin-bottom:6px">`+new Date().toLocaleTimeString()+` — ${msg}</div>` + box.innerHTML; }
+    log('Simulation started.');
+
+    // Step-specific actions
+    const actionArea = document.getElementById('actionArea');
+    let towelPasses = new Set();
+    let mixing = false;
+    let cured=false;
+
+    function updateStepUI(){ actionArea.innerHTML=''; const instructions = document.getElementById('stepInstructions');
+      if(active===1){ instructions.innerHTML = 'Pick two steel substrates (2 mm × 25 mm × 120 mm). Use the crosshatch sandpaper tool to abrade the surfaces, then clean with an acetone-soaked paper towel. <span class="warning">Do not pass the towel twice over the same spot.</span>';
+        const btnAbrade = document.createElement('button'); btnAbrade.textContent='Start crosshatch abrasion'; btnAbrade.onclick = startAbrade; actionArea.appendChild(btnAbrade);
+        const btnClean = document.createElement('button'); btnClean.className='ghost'; btnClean.textContent='Use acetone towel'; btnClean.onclick = startCleaning; actionArea.appendChild(btnClean);
+      }
+      if(active===2){ instructions.innerHTML = 'Place substrates in mould with pins; add 0.2 mm shims which set a vertical gap of 0.2 mm and ensure 25 mm overlap.';
+        const snap = document.createElement('button'); snap.textContent='Snap substrates into mould'; snap.onclick = snapIntoMould; actionArea.appendChild(snap);
+        const removeTop = document.createElement('button'); removeTop.className='ghost'; removeTop.textContent='Remove top substrate'; removeTop.onclick = removeTopSubstrate; actionArea.appendChild(removeTop);
+      }
+      if(active===3){ instructions.innerHTML = 'Weigh 10 g resin (A) + 4 g hardener (B). Close container and mix in centrifugal mixer for 10 s.';
+        const mixBtn = document.getElementById('mixBtn'); mixBtn.style.display='inline-block'; mixBtn.disabled = mixing; actionArea.appendChild(mixBtn);
+      }
+      if(active===4){ instructions.innerHTML = 'Apply adhesive on bottom substrate in overlapped region using spatula. Then lower top substrate one side first, then the other to allow air escape.';
+        const apply = document.createElement('button'); apply.textContent='Enable adhesive application (paint)'; apply.onclick = enableAdhesivePainting; actionArea.appendChild(apply);
+        const lowerOne = document.createElement('button'); lowerOne.className='ghost'; lowerOne.textContent='Lower side A first'; lowerOne.onclick = ()=>lowerTop('A'); actionArea.appendChild(lowerOne);
+        const lowerOther = document.createElement('button'); lowerOther.className='ghost'; lowerOther.textContent='Lower side B second'; lowerOther.onclick = ()=>lowerTop('B'); actionArea.appendChild(lowerOther);
+        const closeMould = document.createElement('button'); closeMould.textContent='Close mould (start cure)'; closeMould.onclick = closeMouldAndCure; actionArea.appendChild(closeMould);
+      }
+      if(active===5){ instructions.innerHTML = 'Curing: 24 hours. Simulation will accelerate time to demonstrate cured joint.';
+        const status = document.createElement('div'); status.innerHTML = '<div style="margin-bottom:6px">Cure status</div><div class="meter"><i id="cureMeter"></i></div>'; actionArea.appendChild(status);
+        if(cured) actionArea.appendChild(Object.assign(document.createElement('div'),{innerText:'Joint cured — finished!', style:'margin-top:8px;color:#9ae6b4'}));
+      }
+    }
+
+    // Step 1 - abrasion
+    function startAbrade(){
+      log('Abrasive crosshatch started on both substrates.');
+      // simulate creating a roughened look by applying a normal map-looking texture via canvas
+      [bottomSubstrate,topSubstrate].forEach(m=>{ m.userData.abraded=true; m.material.roughness=0.9; m.material.metalness=0.2; });
+      log('Crosshatch abrasion complete. Surfaces are roughened.');
+    }
+
+    // cleaning: user moves pointer over top surface to simulate towel passes; prevent double-pass
+    let cleaningActive=false;
+    function startCleaning(){ cleaningActive = true; log('Cleaning active: move pointer over surfaces and click to pass towel. Avoid passing twice over same spot.'); renderer.domElement.style.cursor='crosshair';
+      function pass(e){ if(!cleaningActive) return; onPointer(e); raycaster.setFromCamera(mouse,camera); const hits = raycaster.intersectObjects([bottomSubstrate,topSubstrate]); if(hits.length){ const p = hits[0].point; const key = Math.round(p.x*10)+','+Math.round(p.y*10)+','+Math.round(p.z*10); if(towelPasses.has(key)){ log('Warning: towel passed again on same spot — contaminants may be transferred back.'); } else { towelPasses.add(key); hits[0].object.userData.cleaned = true; log('Towel pass recorded on '+hits[0].object.name); if(towelPasses.size>30) { cleaningActive=false; renderer.domElement.removeEventListener('click',pass); renderer.domElement.style.cursor='auto'; log('Cleaning complete.'); } } } }
+      renderer.domElement.addEventListener('click',pass);
+    }
+
+    // Step 2 - mould setup
+    function snapIntoMould(){ // align bottom and top to mould pins and overlap
+      bottomSubstrate.position.set(-25*SCALE,0,0); topSubstrate.position.set(25*SCALE, (2*SCALE+0.2*SCALE),0); log('Substrates snapped into mould pins. Overlap now 25 mm.');
+      // position shim between
+      shim.position.set(0, 1.0*SCALE + 0.1*SCALE, 18*SCALE);
+    }
+    function removeTopSubstrate(){ topSubstrate.position.y += 30*SCALE; log('Top substrate removed to allow adhesive application.'); }
+
+    // Step 3 - mixing
+    document.getElementById('mixBtn').addEventListener('click', ()=>{
+      if(mixing) return; mixing=true; log('Mixer: container closed and mixing for 10 seconds...'); let t=0; const meter=document.getElementById('mixMeter'); meter.style.width='0%'; const iv=setInterval(()=>{ t+=1; meter.style.width=(t/10*100)+'%'; if(t>=10){ clearInterval(iv); mixing=false; log('Mixing complete — adhesive ready.'); document.getElementById('mixBtn').disabled=false; } },1000); document.getElementById('mixBtn').disabled=true; });
+
+    // Step 4 - adhesive application painting
+    let painting=false;
+    function enableAdhesivePainting(){ painting=true; log('Adhesive painting enabled: click-drag on bottom substrate to deposit adhesive in overlap region (25 mm).'); renderer.domElement.addEventListener('pointerdown',paintDown);
+      function paintDown(e){ if(!painting) return; onPointer(e); raycaster.setFromCamera(mouse,camera); const hits = raycaster.intersectObject(bottomSubstrate); if(hits.length){ applyDot(hits[0].point); renderer.domElement.addEventListener('pointermove',paintMove); renderer.domElement.addEventListener('pointerup',paintUp); } }
+      function paintMove(e){ onPointer(e); raycaster.setFromCamera(mouse,camera); const hits = raycaster.intersectObject(bottomSubstrate); if(hits.length) applyDot(hits[0].point); }
+      function paintUp(e){ renderer.domElement.removeEventListener('pointermove',paintMove); renderer.domElement.removeEventListener('pointerup',paintUp); }
+    }
+    function applyDot(point){ // small blob
+      const r = 1.2*SCALE; const g = new THREE.CylinderGeometry(r, r, 0.2*SCALE, 12); const m = new THREE.Mesh(g, new THREE.MeshStandardMaterial({color:0xff7b7b,roughness:0.6})); m.rotation.x=Math.PI/2; m.position.copy(point); m.position.y += 0.12*SCALE; adhesiveGroup.add(m); }
+
+    // lowering top
+    function lowerTop(side){ // animate rotation around center to lower one side
+      log('Lowering top substrate: side '+side+' first to allow air escape'); const duration=800; const start = {y:topSubstrate.position.y, rx:topSubstrate.rotation.x, rz:topSubstrate.rotation.z}; const targetY= (2*SCALE + 0.2*SCALE) ; const startTime = perf

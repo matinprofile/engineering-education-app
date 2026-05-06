@@ -26,8 +26,8 @@ const iconYouTube = (
 );
 
 const adhesiveQuickLinks = [
-  { label: "Manufacturing", href: "https://lucasgroup.pt/demos/slj.html", icon: iconManufacturing },
-  { label: "Design", href: "https://www.jointdesigner.pt/index.php", icon: iconDesign },
+  { label: "Manufacturing", href: "/adhesive-bonding/apps/slj-manufacturing-guide", icon: iconManufacturing },
+  { label: "Design", href: "/adhesive-bonding/apps/nr613-tutorial", icon: iconDesign },
   { label: "YouTube", href: "https://www.youtube.com/@LucasVideoLessons", icon: iconYouTube },
 ];
 
@@ -38,6 +38,7 @@ const joiningFormingQuickLinks = [
 
 const weldingQuickLinks = [
   { label: "Manufacturing", href: "/manufacturing", icon: iconManufacturing },
+  { label: "Design", href: "/welding/apps/mag-welding-sim", icon: iconDesign },
 ];
 
 const materialScienceQuickLinks = [

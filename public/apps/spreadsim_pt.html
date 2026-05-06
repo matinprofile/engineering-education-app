@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de aplicação de adesivos</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #3498db;
+            --success: #27ae60;
+            --danger: #c0392b;
+            --light: #ecf0f1;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--light);
+            color: var(--primary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 { margin-bottom: 10px; }
+        p { max-width: 600px; text-align: center; line-height: 1.5; }
+
+        .game-container {
+            display: flex;
+            gap: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .canvas-wrapper {
+            position: relative;
+            border: 4px solid #bdc3c7;
+            border-radius: 4px;
+            cursor: crosshair;
+        }
+
+        /* Representa o vidro/substrato superior */
+        .glass-overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            pointer-events: none;
+            transition: background 1s;
+        }
+
+        canvas {
+            display: block;
+            background-color: #fff; /* O substrato */
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            min-width: 250px;
+        }
+
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        button {
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        .btn-pattern { background-color: #bdc3c7; color: #2c3e50; }
+        .btn-pattern:hover { background-color: #95a5a6; }
+        .btn-pattern.active { background-color: var(--accent); color: white; }
+
+        .btn-action { background-color: var(--success); color: white; margin-top: 10px; }
+        .btn-action:hover { transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .btn-action:disabled { background-color: #ccc; cursor: not-allowed; transform: none; }
+
+        .btn-reset { background-color: var(--danger); color: white; }
+
+        .legend {
+            margin-top: 20px;
+            font-size: 0.9rem;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+        }
+        .legend-item { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+        .dot { width: 15px; height: 15px; border-radius: 50%; }
+        
+        .results-panel {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 5px solid var(--accent);
+            display: none;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: white;
+            font-size: 0.8rem;
+            margin-bottom: 10px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>Laboratório de Aplicação de Adesivos</h1>
+    <p>Selecione um padrão de aplicação e comprima a junta. Observe como o adesivo se espalha e verifique se o ar fica preso dentro da união.</p>
+
+    <div class="game-container">
+        <div class="canvas-wrapper">
+            <canvas id="simCanvas" width="400" height="400"></canvas>
+            <div class="glass-overlay" id="glass"></div>
+        </div>
+
+        <div class="controls">
+            <h3>1. Selecionar Padrão</h3>
+            <div class="btn-group">
+                <button class="btn-pattern active" onclick="setPattern('zigzag')">Ziguezague (Contínuo)</button>
+                <button class="btn-pattern" onclick="setPattern('parallel')">Cordões Paralelos</button>
+                <button class="btn-pattern" onclick="setPattern('perimeter')">Perímetro (Caixa)</button>
+            </div>
+
+            <h3>2. Aplicar Força</h3>
+            <button class="btn-action" id="compressBtn" onclick="compress()">Comprimir Junta</button>
+            <button class="btn-reset" onclick="resetSim()">Reiniciar / Limpar</button>
+
+            <div class="results-panel" id="results">
+                <div id="statusBadge" class="status-badge"></div>
+                <div id="resultText"></div>
+            </div>
+
+            <div class="legend">
+                <div class="legend-item"><div class="dot" style="background:#3498db"></div>Adesivo</div>
+                <div class="legend-item"><div class="dot" style="background:#e74c3c"></div>Ar Preso (Falha)</div>
+                <div class="legend-item"><div class="dot" style="background:#fff; border:1px solid #ccc"></div>Substrato</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const glass = document.getElementById('glass');
+        const resultsPanel = document.getElementById('results');
+        const resultText = document.getElementById('resultText');
+        const statusBadge = document.getElementById('statusBadge');
+        const compressBtn = document.getElementById('compressBtn');
+
+        // Estado da Simulação
+        let gridSize = 4; // Tamanho do pixel de cada célula
+        let cols = canvas.width / gridSize;
+        let rows = canvas.height / gridSize;
+        let grid = []; // 0 = vazio, 1 = cola, 2 = ar preso
+        let currentPattern = 'zigzag';
+        let isCompressed = false;
+
+        // Inicializar
+        function init() {
+            resetGrid();
+            drawPattern();
+        }
+
+        function resetGrid() {
+            grid = new Array(cols).fill(0).map(() => new Array(rows).fill(0));
+        }
+
+        function setPattern(pattern) {
+            if(isCompressed) resetSim();
+            currentPattern = pattern;
+            
+            // Alternar Interface
+            document.querySelectorAll('.btn-pattern').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            resetGrid();
+            drawPattern();
+        }
+
+        // Desenhar os padrões iniciais na grelha
+        function drawPattern() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Lógica para desenhar padrões específicos
+            if (currentPattern === 'zigzag') {
+                for (let x = 10; x < cols - 10; x++) {
+                    // Lógica de onda sinusoidal
+                    let y = Math.floor((rows / 2) + (Math.sin(x * 0.15) * (rows / 3)));
+                    brush(x, y);
+                }
+            } else if (currentPattern === 'parallel') {
+                for (let x = 20; x < cols - 20; x++) {
+                    brush(x, 30);
+                    brush(x, 50);
+                    brush(x, 70);
+                }
+            } else if (currentPattern === 'perimeter') {
+                // Formato de caixa
+                for (let x = 20; x < cols - 20; x++) {
+                    brush(x, 20);
+                    brush(x, rows - 20);
+                }
+                for (let y = 20; y < rows - 20; y++) {
+                    brush(20, y);
+                    brush(cols - 20, y);
+                }
+            }
+            
+            render();
+        }
+
+        // Auxiliar para definir bits da grelha com ligeira espessura
+        function brush(x, y) {
+            const thickness = 2;
+            for(let i = -thickness; i <= thickness; i++) {
+                for(let j = -thickness; j <= thickness; j++) {
+                    if (x+i >= 0 && x+i < cols && y+j >= 0 && y+j < rows) {
+                        grid[x+i][y+j] = 1;
+                    }
+                }
+            }
+        }
+
+        // O Loop da Simulação
+        function compress() {
+            if (isCompressed) return;
+            isCompressed = true;
+            compressBtn.disabled = true;
+            glass.style.background = "rgba(0, 0, 0, 0.2)"; // Escurecer para mostrar pressão
+
+            let steps = 0;
+            const maxSteps = 15; // O quanto se espalha
+
+            const interval = setInterval(() => {
+                expandGlue();
+                render();
+                steps++;
+                
+                if (steps >= maxSteps) {
+                    clearInterval(interval);
+                    analyzeResult();
+                }
+            }, 100);
+        }
+
+        // Expansão Automata Celular
+        function expandGlue() {
+            let newGrid = JSON.parse(JSON.stringify(grid)); // Deep copy
+            
+            for (let x = 1; x < cols - 1; x++) {
+                for (let y = 1; y < rows - 1; y++) {
+                    if (grid[x][y] === 1) {
+                        // Expandir para vizinhos aleatoriamente para simular fluido
+                        if (Math.random() > 0.3) newGrid[x+1][y] = 1;
+                        if (Math.random() > 0.3) newGrid[x-1][y] = 1;
+                        if (Math.random() > 0.3) newGrid[x][y+1] = 1;
+                        if (Math.random() > 0.3) newGrid[x][y-1] = 1;
+                    }
+                }
+            }
+            grid = newGrid;
+        }
+
+        // Deteção de Ar Preso (Flood Fill)
+        function analyzeResult() {
+            let visited = new Array(cols).fill(false).map(() => new Array(rows).fill(false));
+            let queue = [];
+
+            // Adicionar todas as células da borda à fila (rotas de fuga de ar)
+            for(let x = 0; x < cols; x++) {
+                queue.push({x: x, y: 0});
+                queue.push({x: x, y: rows - 1});
+                visited[x][0] = true;
+                visited[x][rows-1] = true;
+            }
+            for(let y = 0; y < rows; y++) {
+                queue.push({x: 0, y: y});
+                queue.push({x: cols - 1, y: y});
+                visited[0][y] = true;
+                visited[cols-1][y] = true;
+            }
+
+            // BFS Flood Fill a partir das bordas
+            while(queue.length > 0) {
+                let cell = queue.shift();
+                
+                const neighbors = [
+                    {x: cell.x+1, y: cell.y}, {x: cell.x-1, y: cell.y},
+                    {x: cell.x, y: cell.y+1}, {x: cell.x, y: cell.y-1}
+                ];
+
+                for(let n of neighbors) {
+                    if(n.x >= 0 && n.x < cols && n.y >= 0 && n.y < rows) {
+                        // Se não foi visitado E está vazio (não é cola)
+                        if(!visited[n.x][n.y] && grid[n.x][n.y] !== 1) {
+                            visited[n.x][n.y] = true;
+                            queue.push(n);
+                        }
+                    }
+                }
+            }
+
+            // Detetar Ar Preso
+            let trappedPixels = 0;
+            for(let x = 0; x < cols; x++) {
+                for(let y = 0; y < rows; y++) {
+                    // Se não é cola (grid=0) E não conseguimos chegar lá a partir da borda (visited=false)
+                    if(grid[x][y] === 0 && !visited[x][y]) {
+                        grid[x][y] = 2; // Marcar como ar preso
+                        trappedPixels++;
+                    }
+                }
+            }
+            
+            render();
+            showFeedback(trappedPixels);
+        }
+
+        function showFeedback(trappedPixels) {
+            resultsPanel.style.display = 'block';
+            let totalPixels = cols * rows;
+            let trappedPercent = (trappedPixels / totalPixels * 100).toFixed(1);
+
+            if (trappedPixels > 50) { // Limite para "Mau"
+                statusBadge.style.backgroundColor = '#e74c3c';
+                statusBadge.textContent = 'ELEVADO RISCO DE FALHA';
+                resultText.innerHTML = `<strong>Resultado:</strong> ${trappedPercent}% da área contém bolsas de ar preso.<br><br>
+                Devido aos cordões de adesivo terem formado um circuito fechado, o ar no interior não teve por onde escapar durante a compressão. Isto enfraquece a união e potencia a corrosão.`;
+            } else {
+                statusBadge.style.backgroundColor = '#27ae60';
+                statusBadge.textContent = 'UNIÃO IDEAL';
+                resultText.innerHTML = `<strong>Resultado:</strong> O caminho de saída do ar permaneceu aberto durante a compressão.<br><br>
+                O adesivo espalhou-se para fora, empurrando o ar eficazmente pelas extremidades da junta.`;
+            }
+        }
+
+        // Lógica de Renderização
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            for (let x = 0; x < cols; x++) {
+                for (let y = 0; y < rows; y++) {
+                    if (grid[x][y] === 1) {
+                        ctx.fillStyle = '#3498db'; // Cola
+                        ctx.fillRect(x * gridSize, y * gridSize, gridSize, gridSize);
+                    } else if (grid[x][y] === 2) {
+                        ctx.fillStyle = '#e74c3c'; // Ar Preso
+                        ctx.fillRect(x * gridSize, y * gridSize, gridSize, gridSize);
+                    }
+                }
+            }
+        }
+
+        function resetSim() {
+            isCompressed = false;
+            compressBtn.disabled = false;
+            resultsPanel.style.display = 'none';
+            glass.style.background = "rgba(255, 255, 255, 0.1)";
+            setPattern(currentPattern); // Redesenha o padrão original
+        }
+
+        // Iniciar
+        init();
+
+    </script>
+</body>
+</html>

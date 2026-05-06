@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laser Welding Quiz</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .quiz-container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 90%;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .question-box {
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+        }
+        .question-box p {
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #555;
+        }
+        .option {
+            display: block;
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #e9e9e9;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .option:hover {
+            background-color: #dcdcdc;
+        }
+        .option input[type="radio"] {
+            margin-right: 10px;
+        }
+        #submit-btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-top: 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        #submit-btn:hover {
+            background-color: #0056b3;
+        }
+        #results {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .correct {
+            background-color: #d4edda !important;
+            border: 1px solid #c3e6cb;
+        }
+        .incorrect {
+            background-color: #f8d7da !important;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <h1>Laser Welding Quiz 💡</h1>
+        <form id="quiz-form">
+            </form>
+        <button id="submit-btn">Submit Quiz</button>
+        <div id="results"></div>
+    </div>
+
+    <script>
+        const quizData = [
+            {
+                question: "1. What is the primary heat source in Laser Beam Welding (LBW)?",
+                options: ["A high-velocity electron beam", "A concentrated stream of photons", "A focused electric arc"],
+                correctAnswer: "A concentrated stream of photons"
+            },
+            {
+                question: "2. Laser welding is generally categorized as what type of welding process?",
+                options: ["Solid-state welding", "Fusion welding", "Resistance welding"],
+                correctAnswer: "Fusion welding"
+            },
+            {
+                question: "3. What phenomenon is crucial for deep, narrow welds in Keyhole Mode Laser Welding?",
+                options: ["Plasma jetting", "Creating a vaporized column (keyhole)", "Using a consumable electrode"],
+                correctAnswer: "Creating a vaporized column (keyhole)"
+            },
+            {
+                question: "4. What is a major advantage of Laser Welding regarding the Heat-Affected Zone (HAZ)?",
+                options: ["It produces a very wide HAZ", "It results in a minimal, narrow HAZ", "It completely eliminates the HAZ"],
+                correctAnswer: "It results in a minimal, narrow HAZ"
+            },
+            {
+                question: "5. Which laser type is commonly used for high-power industrial welding due to its efficiency and beam quality?",
+                options: ["CO2 Laser", "Fiber Laser", "Nd:YAG Laser"],
+                correctAnswer: "Fiber Laser"
+            }
+        ];
+
+        const quizForm = document.getElementById('quiz-form');
+        const submitButton = document.getElementById('submit-btn');
+        const resultsDiv = document.getElementById('results');
+
+        // Function to load and display questions
+        function loadQuiz() {
+            quizData.forEach((item, index) => {
+                const questionBox = document.createElement('div');
+                questionBox.classList.add('question-box');
+                
+                questionBox.innerHTML = `<p>${item.question}</p>`;
+                
+                item.options.forEach(option => {
+                    const label = document.createElement('label');
+                    label.classList.add('option');
+                    
+                    const input = document.createElement('input');
+                    input.type = 'radio';
+                    input.name = 'question' + index;
+                    input.value = option;
+                    
+                    label.appendChild(input);
+                    label.appendChild(document.createTextNode(option));
+                    questionBox.appendChild(label);
+                });
+                
+                quizForm.appendChild(questionBox);
+            });
+        }
+
+        // Function to calculate and display the score
+        function calculateScore(e) {
+            e.preventDefault();
+            let score = 0;
+            
+            // Check if results are already displayed to prevent re-scoring
+            if(resultsDiv.textContent.includes('You scored')) {
+                return; 
+            }
+
+            quizData.forEach((item, index) => {
+                const questionName = 'question' + index;
+                const selectedOption = document.querySelector(`input[name="${questionName}"]:checked`);
+                const questionBox = document.querySelector(`.question-box:nth-child(${index + 1})`);
+                
+                // Remove previous visual feedback
+                questionBox.querySelectorAll('.option').forEach(opt => {
+                    opt.classList.remove('correct', 'incorrect');
+                });
+
+                if (selectedOption) {
+                    const isCorrect = selectedOption.value === item.correctAnswer;
+                    const parentLabel = selectedOption.closest('.option');
+
+                    if (isCorrect) {
+                        score++;
+                        parentLabel.classList.add('correct');
+                    } else {
+                        parentLabel.classList.add('incorrect');
+                        // Highlight the correct answer
+                        questionBox.querySelectorAll('.option').forEach(opt => {
+                            // Trim to match the question text exactly (removes surrounding whitespace/radio button)
+                            if (opt.textContent.trim() === item.correctAnswer) {
+                                opt.classList.add('correct');
+                            }
+                        });
+                    }
+                } else {
+                    // If no answer selected, highlight the correct one
+                    questionBox.querySelectorAll('.option').forEach(opt => {
+                        if (opt.textContent.trim() === item.correctAnswer) {
+                            opt.classList.add('correct');
+                        }
+                    });
+                }
+            });
+
+            resultsDiv.innerHTML = `You scored **${score}** out of **${quizData.length}** correct!`;
+            submitButton.disabled = true; // Prevent multiple submissions
+        }
+
+        // Attach event listener to the submit button
+        submitButton.addEventListener('click', calculateScore);
+
+        // Load the quiz on page load
+        loadQuiz();
+    </script>
+</body>
+</html>

@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Tutorial Interativo — Projeto de Junta Adesiva (NR613)</title>
+<style>
+  :root{font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;}
+  body{margin:0;background:#f6f8fb;color:#0b2545;line-height:1.45}
+  header{background:linear-gradient(90deg,#0b3b6f,#1b9be0);color:#fff;padding:18px 20px}
+  header h1{margin:0;font-size:1.2rem}
+  .container{max-width:980px;margin:18px auto;padding:18px;background:#fff;border-radius:10px;box-shadow:0 6px 20px rgba(11,37,69,.06)}
+  .grid{display:grid;grid-template-columns:1fr 340px;gap:18px}
+  .panel{padding:14px;border-radius:8px;background:#fbfdff;border:1px solid #e6eef7}
+  h2{margin:6px 0 12px;font-size:1.05rem}
+  label{display:block;margin-top:10px;font-weight:600}
+  input,select,textarea{width:100%;padding:8px;border-radius:6px;border:1px solid #cfe1f6;background:#fff}
+  button{margin-top:12px;padding:10px 14px;border-radius:8px;border:0;background:#0b60b0;color:#fff;font-weight:700;cursor:pointer}
+  .note{font-size:.9rem;color:#315d88;margin-top:8px}
+  .steps{margin:8px 0;padding:0;list-style:none}
+  .steps li{margin:8px 0;padding:10px;border-left:4px solid #d6e9ff;background:linear-gradient(#fff,#fbfdff)}
+  .small{font-size:.86rem;color:#375d81}
+  .result{background:#eef7ff;padding:10px;border-radius:6px;margin-top:10px;border:1px solid #d0e8ff}
+  footer{font-size:.85rem;color:#6b7f95;padding:12px 20px;text-align:center}
+  .citation{font-size:.82rem;color:#3a5f86;margin-top:12px}
+  .checklist{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:8px}
+  .chip{background:#eaf5ff;padding:8px;border-radius:6px;border:1px solid #cfe4ff;font-size:.9rem}
+  .wide{grid-column:1/3}
+  .code{background:#0b2545;color:#fff;padding:6px;border-radius:6px;font-family:monospace;font-size:.85rem}
+  details{margin-top:10px}
+  summary{cursor:pointer;padding:8px;border-radius:6px;background:#f0f6fb}
+</style>
+</head>
+<body>
+<header>
+  <h1>Tutorial interativo: projeto de junta adesiva conforme NR613</h1>
+  <div class="small">Standalone · client-side · Português (BR)</div>
+</header>
+
+<main class="container">
+  <div class="grid">
+    <div>
+      <section class="panel" id="intro">
+        <h2>Objetivo</h2>
+        <p>Este tutorial guia passo-a-passo o projeto de uma <strong>junta adesiva estrutural</strong> de acordo com a <strong>NR613 (Bonded Assemblies)</strong>. Ele inclui: definição do escopo, seleção do método de justificação (A/B/C), verificação de fatores de segurança, requisitos de ensaios, controle de fabricação (MTI Bonding Plan) e preparação de superfície.</p>
+        <p class="note">Os trechos desta orientação seguem a NR613 fornecida — ver referências ao final. Use este tutorial como checklist interativo; todas as decisões finais e submissões devem ser feitas conforme os requisitos da Sociedade de Classificação aplicável.</p>
+      </section>
+
+      <section class="panel" id="passos">
+        <h2>Fluxo resumido (Passo a passo)</h2>
+        <ul class="steps">
+          <li><strong>1. Definir escopo & classe de segurança (SC)</strong><br>Descreva função, localização a bordo, cargas e condições ambientais. (NR613 - metodologia e especificação).</li>
+          <li><strong>2. Determinar maturidade & nível de qualificação Q</strong><br>Escolha Q1–Q5 com base na maturidade do projeto e segurança. (NR613 - Tab. requisitos).</li>
+          <li><strong>3. Preparar Bonding Specification & Design File</strong><br>Desenhos, espessura(s) previstas, processos, preparação de superfície, e critérios de aceitação.</li>
+          <li><strong>4. Selecionar método de justificação</strong><br>Method A (testes), B (cálculos), C (cálculos + testes). Cada um tem requisitos e fatores específicos.</li>
+          <li><strong>5. Planejar ensaios e MTI Bonding Plan</strong><br>Montar plano de fabricação, ensaios (caracterização/idade/fadiga conforme Q) e rastreabilidade.</li>
+          <li><strong>6. Produção, inspeção NDT e validação</strong><br>Fazer controles ambientais, final checks, NDT, e documentar para submissão.</li>
+        </ul>
+        <div class="citation">Fonte: NR613 - Sec 2 e Sec 5. :contentReference[oaicite:0]{index=0} :contentReference[oaicite:1]{index=1}</div>
+      </section>
+
+      <section class="panel" id="design">
+        <h2>Design da junta — recomendações práticas</h2>
+        <p class="small">Pontos de atenção segundo NR613:</p>
+        <div class="checklist">
+          <div class="chip">Priorizar carregamento em cisalhamento no plano</div>
+          <div class="chip">Evitar peel / modo I local (desenhar transições suaves)</div>
+          <div class="chip">Definir faixa de espessura do adesivo e tolerâncias</div>
+          <div class="chip">Considerar coeficiente de dilatação térmica</div>
+          <div class="chip wide">Juntas frágeis → preferir validação por ensaios (Method C / A).</div>
+        </div>
+        <p class="note">Referência: requisitos de geometria, espessura, modos de falha e temperatura de projeto. :contentReference[oaicite:2]{index=2}</p>
+      </section>
+
+      <section class="panel" id="surface">
+        <h2>Preparação de superfície (resumo)</h2>
+        <ol>
+          <li>Limpeza e desengraxe;</li>
+          <li>Abrasão adequada ao substrato (areia, lixa, bristle, etc);</li>
+          <li>Limpeza final; aplicar primer se indicado pelo fabricante;</li>
+          <li>Registrar lote/batch de produtos usados e resultados de ensaios de aderência.</li>
+        </ol>
+        <p class="small">Métodos de verificação citados na NR613: medição de molhabilidade (NF EN 828), wetting tension (ASTM D2578), e teste pull-off.</p>
+        <div class="citation">Fonte: NR613 - Sec 5 (4.3.2) e Appendix 7. :contentReference[oaicite:3]{index=3} :contentReference[oaicite:4]{index=4}</div>
+      </section>
+
+      <section class="panel" id="tests">
+        <h2>Ensaios e caracterização</h2>
+        <p class="small">Seleção típica de ensaios (conforme Q e método):</p>
+        <div class="checklist">
+          <div class="chip">Caracterização adesivo: Tg, módulo, resistência tração/cisalhamento (ISO/ASTM listados)</div>
+          <div class="chip">Ensaios de junta: SLJ, TAST, ENF, DCB, peel, conforme objetivo</div>
+          <div class="chip">Envelhecimento e fadiga (Q4/Q5 ou conforme exigência)</div>
+          <div class="chip">Ensaios representativos em escala média/grande para Method A/C</div>
+        </div>
+        <div class="citation">Fonte: NR613 - Sec 3, Tab. de testes e App 4/5. :contentReference[oaicite:5]{index=5} :contentReference[oaicite:6]{index=6}</div>
+      </section>
+
+      <section class="panel" id="mtiplan">
+        <h2>MTI Bonding Plan — pontos essenciais</h2>
+        <p>O MTI Bonding Plan deve cobrir desde compra e armazenamento dos adesivos até aplicação, cura, NDT e rastreabilidade (lotes, temperatura, humidade, tempo entre operações).</p>
+        <ul>
+          <li>Lista de materiais e ferramentas;</li>
+          <li>Controle de armazenamento e vida útil;</li>
+          <li>Procedimentos de mistura/dosagem e pot-life;</li>
+          <li>Controles ambientais na aplicação;</li>
+          <li>Critérios de aceitação e planilha de registo.</li>
+        </ul>
+        <div class="citation">Fonte: NR613 - Sec 5 e App 6. :contentReference[oaicite:7]{index=7} :contentReference[oaicite:8]{index=8}</div>
+      </section>
+    </div>
+
+    <aside>
+      <div class="panel">
+        <h2>Calculadora de Fator de Segurança</h2>
+        <p class="small">A fórmula da NR613 (SF ≥ α · Ct · Cv · CF · Cθ · Cb)</p>
+
+        <label for="method">Método de justificação</label>
+        <select id="method">
+          <option value="A">Method A — testes (α = 1.5)</option>
+          <option value="B">Method B — cálculos (α = 2.0)</option>
+          <option value="C">Method C — cálculos + testes (α = 1.5)</option>
+        </select>
+
+        <label for="ct">Ct (critério de falha)</label>
+        <select id="ct">
+          <option value="1.2">1.2 (falha por ensaio - Method A/C)</option>
+          <option value="1.5">1.5 (uso de datasheet - Method B)</option>
+        </select>
+
+        <label for="cv">Cv (ageing)</label>
+        <select id="cv">
+          <option value="1.0">1.0 (não protegido / justificar)</option>
+          <option value="1.2" selected>1.2 (protegido — recomendação NR613)</option>
+        </select>
+
+        <label for="cf">CF (processo)</label>
+        <select id="cf">
+          <option value="1.25">1.25 (manual)</option>
+          <option value="1.15">1.15 (vácuo/infusão/injection)</option>
+        </select>
+
+        <label for="ctheta">Cθ (temperatura)</label>
+        <select id="ctheta">
+          <option value="1.0">1.0 (testado em laboratório nas temperaturas de serviço)</option>
+          <option value="1.2">1.2 (dados deduzidos do datasheet)</option>
+        </select>
+
+        <label for="cb">Cb (tipo de falha)</label>
+        <select id="cb">
+          <option value="1.0">1.0 (ductil)</option>
+          <option value="1.15" selected>1.15 (brittle ou indefinido)</option>
+        </select>
+
+        <label for="ldesign">Carga máxima de projeto (Ldesign) — N</label>
+        <input id="ldesign" type="number" value="1000" />
+
+        <button id="calc">Calcular SF e Carga característica requerida</button>
+
+        <div id="out" class="result" aria-live="polite">
+          <div><strong>SF mínimo calculado:</strong> —</div>
+          <div style="margin-top:8px"><strong>Carga característica requerida (F<sub>req</sub>) para atender Ldesign:</strong> —</div>
+        </div>
+
+        <div class="citation small">Valores α, Ct, Cv, CF, Cθ e Cb conforme NR613. (α: A=1.5, B=2, C=1.5). :contentReference[oaicite:9]{index=9}</div>
+
+        <details>
+          <summary>Como usar</summary>
+          <p class="small">Escolha o método e fatores, insira Ldesign (N). O script calcula SF mínimo e a carga característica mínima (Freq) que a junta deve demonstrar (por teste ou predição) para satisfazer SF.</p>
+        </details>
+      </div>
+
+      <div class="panel" style="margin-top:12px;">
+        <h2>Checklist rápida antes de enviar à Sociedade</h2>
+        <ul class="small">
+          <li>Bonding specification completa (descrição, função, localização).</li>
+          <li>Design file com desenhos e espessura(s).</li>
+          <li>MTI Bonding Plan com rastreabilidade e critérios.</li>
+          <li>Plano de ensaios / caracterização do adesivo.</li>
+          <li>Registros de preparação de superfície e NDT.</li>
+        </ul>
+        <div class="citation">Recomendações: NR613 Sec 2, Sec 3 e Sec 5. :contentReference[oaicite:10]{index=10} :contentReference[oaicite:11]{index=11}</div>
+      </div>
+
+      <div class="panel" style="margin-top:12px;">
+        <h2>Notas rápidas / Avançado</h2>
+        <p class="small">Para Method C: você precisa de campanha experimental (mínimo 4 configurações, ≥5 espécimes cada) e análise de correlação b, COV e βC conforme NR613 (EN1990-based). Veja App 4 e §2.4. :contentReference[oaicite:12]{index=12} :contentReference[oaicite:13]{index=13}</p>
+      </div>
+    </aside>
+  </div>
+
+  <section class="panel" style="margin-top:14px;">
+    <h2>Exportar / copiar checklist</h2>
+    <p class="small">Você pode copiar o checklist abaixo (botão gera texto selecionável):</p>
+    <button id="genCheck">Gerar checklist (selecionável)</button>
+    <textarea id="checkTxt" style="width:100%;margin-top:10px;height:120px;"></textarea>
+  </section>
+
+  <section class="panel" style="margin-top:14px;">
+    <h2>Referências (trechos NR613 usados)</h2>
+    <ul class="small">
+      <li>Metodologia e etapas de avaliação (Fluxograma): NR613 Sec 2. :contentReference[oaicite:14]{index=14}</li>
+      <li>MTI Bonding Plan — conteúdo e exigências: NR613 Sec 5 e Appendix 6. :contentReference[oaicite:15]{index=15} :contentReference[oaicite:16]{index=16}</li>
+      <li>Preparação de superfície — limpeza, abrasão, testes de molhabilidade: NR613 Sec 5 (4.3.2) e App 7. :contentReference[oaicite:17]{index=17}</li>
+      <li>Métodos de justificação: Method A, B, C e requisitos (2.2–2.4). :contentReference[oaicite:18]{index=18}</li>
+      <li>Fatores de segurança e fórmula (SF ≥ α·Ct·Cv·CF·Cθ·Cb): NR613 Sec 3. :contentReference[oaicite:19]{index=19}</li>
+      <li>Ensaios e caracterização (Tg, módulos, DCB/ENF/TAST/SLJ...): NR613 Sec 3 e App 4. :contentReference[oaicite:20]{index=20} :contentReference[oaicite:21]{index=21}</li>
+      <li>Guia para classificar juntas brittlé/ductile: App 3. :contentReference[oaicite:22]{index=22}</li>
+    </ul>
+    <p class="small note">Use essas referências no envio de documentação à Sociedade de Classificação.</p>
+  </section>
+</main>
+
+<footer>Gerado automaticamente — baseado no arquivo NR613 que você forneceu. Consulte o texto oficial completo para submissões formais.</footer>
+
+<script>
+(function(){
+  // cálculo conforme SF ≥ α · Ct · Cv · CF · Cθ · Cb
+  const alphaMap = {A:1.5,B:2.0,C:1.5};
+
+  const $ = id => document.getElementById(id);
+  function calc(){
+    const method = $('method').value;
+    const alpha = alphaMap[method];
+    const Ct = parseFloat($('ct').value);
+    const Cv = parseFloat($('cv').value);
+    const CF = parseFloat($('cf').value);
+    const Ctheta = parseFloat($('ctheta').value);
+    const Cb = parseFloat($('cb').value);
+    const Ldesign = parseFloat($('ldesign').value) || 0;
+
+    const SFmin = alpha * Ct * Cv * CF * Ctheta * Cb;
+    // carga característica requerida (Freq) = Ldesign * SFmin
+    const Freq = Ldesign * SFmin;
+    $('out').innerHTML = '<div><strong>SF mínimo calculado:</strong> ' + SFmin.toFixed(3) + '</div>'
+      + '<div style="margin-top:8px"><strong>Carga característica requerida (F<sub>req</sub>):</strong> ' + Freq.toFixed(1) + ' N</div>'
+      + '<div class="small note" style="margin-top:8px">Interprete F<sub>req</sub> conforme o método seleccionado (ex.: para Method A realize ensaios; para Method C ajuste F<sub>pred</sub> com correlação experimental).</div>';
+  }
+  $('calc').addEventListener('click', calc);
+  // gerar checklist
+  $('genCheck').addEventListener('click', function(){
+    const txt = [
+      'CHECKLIST - Projeto junta adesiva (NR613)',
+      '1) Descrição do assembly: função, localização, materiais, cargas.',
+      '2) Definir Safety Class (SC) e maturidade / Qualification level (Q).',
+      '3) Escolher método de justificação (A / B / C) e justificar.',
+      '4) Especificação de bonding: espessura adesiva, preparação de superfície, primers.',
+      '5) MTI Bonding Plan: armazenamento, pot-life, temperatura/humidade, rastreabilidade.',
+      '6) Plano de ensaios: caracterização do adesivo (Tg, E, resistência), testes de junta representativos, envelhecimento/fadiga se aplicável.',
+      '7) Procedimentos de fabricação: instruções, NDT, inspeção final.',
+      '8) Registros: lotes, condições ambientais, ensaios e relatórios para submissão.'
+    ].join('\\n');
+    $('checkTxt').value = txt;
+    $('checkTxt').select();
+  });
+
+  // init default calc
+  calc();
+})();
+</script>
+</body>
+</html>

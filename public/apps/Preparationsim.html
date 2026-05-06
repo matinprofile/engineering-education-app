@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Preparação de Juntas</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <style>
+        body {
+            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            overflow-x: hidden;
+        }
+        
+        /* Canvas Container */
+        #canvas-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: #1e293b; /* Slate 800 */
+            overflow: hidden;
+        }
+
+        .range-thumb {
+            -webkit-appearance: none;
+            appearance: none; 
+            background: transparent;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-900 text-slate-100 flex flex-col items-center p-4 sm:p-6">
+
+    <header class="w-full max-w-7xl mb-6 flex flex-col md:flex-row items-center justify-between gap-6 border-b border-slate-800 pb-6">
+        <div class="flex-shrink-0">
+             <div class="w-[181px] h-[80px] flex items-center justify-center bg-white/5 rounded-lg border border-slate-700 text-slate-500 font-bold">
+                LOGO
+            </div>
+        </div>
+
+        <div class="flex-grow text-center md:text-left md:pl-10">
+            <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight text-blue-500 flex items-center justify-center md:justify-start gap-3">
+                <i data-lucide="pen-tool" class="w-10 h-10"></i>
+                Simulador de Preparação de Juntas
+            </h1>
+            <p class="text-slate-400 mt-2 text-lg">Cálculo de Área e Geometria de Bisel (Butt Joints)</p>
+            <p class="text-slate-500 text-sm mt-1">Configure o tipo de junta e dimensões para calcular o volume de solda necessário.</p>
+        </div>
+    </header>
+
+    <main class="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-3 gap-6 h-auto lg:h-[700px]">
+
+        <div class="lg:col-span-2 bg-black rounded-xl border border-slate-700 shadow-2xl overflow-hidden flex flex-col relative group h-[500px] lg:h-full">
+            
+            <div id="canvas-container">
+                <div class="absolute bottom-4 right-4 flex gap-2">
+                    <button onclick="resetCamera('front')" class="bg-slate-700/80 hover:bg-slate-600 p-2 rounded text-xs text-white backdrop-blur">Vista Frontal</button>
+                    <button onclick="resetCamera('iso')" class="bg-slate-700/80 hover:bg-slate-600 p-2 rounded text-xs text-white backdrop-blur">Perspetiva</button>
+                </div>
+            </div>
+
+            <div class="bg-slate-900 p-2 flex justify-between px-4 text-xs font-mono text-slate-500 border-t border-slate-800">
+                <span>Material: Aço Carbono</span>
+                <span>Densidade: 7.85 g/cm³</span>
+            </div>
+        </div>
+
+        <div class="lg:col-span-1 flex flex-col gap-4 overflow-y-auto pr-2">
+            
+            <div class="bg-slate-800 rounded-xl border border-slate-700 p-5 shadow-lg">
+                <h3 class="text-blue-400 font-bold mb-4 flex items-center gap-2 border-b border-slate-700 pb-2">
+                    <i data-lucide="layers" class="w-5 h-5"></i>
+                    Tipo de Junta
+                </h3>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="setShape('V')" id="btn-V" class="p-3 rounded bg-blue-600 text-white font-bold border border-blue-500 transition-all">Junta em V</button>
+                    <button onclick="setShape('X')" id="btn-X" class="p-3 rounded bg-slate-700 text-slate-400 font-bold border border-slate-600 hover:bg-slate-600 transition-all">Junta em X (Duplo V)</button>
+                    <button onclick="setShape('U')" id="btn-U" class="p-3 rounded bg-slate-700 text-slate-400 font-bold border border-slate-600 hover:bg-slate-600 transition-all">Junta em U</button>
+                    <button onclick="setShape('DU')" id="btn-DU" class="p-3 rounded bg-slate-700 text-slate-400 font-bold border border-slate-600 hover:bg-slate-600 transition-all">Duplo U</button>
+                </div>
+            </div>
+
+            <div class="bg-slate-800 rounded-xl border border-slate-700 p-5 shadow-lg flex-grow">
+                <h3 class="text-orange-400 font-bold mb-4 flex items-center gap-2 border-b border-slate-700 pb-2">
+                    <i data-lucide="settings-2" class="w-5 h-5"></i>
+                    Parâmetros Geométricos
+                </h3>
+
+                <div class="mb-5">
+                    <div class="flex justify-between mb-1">
+                        <label class="text-sm font-semibold text-slate-300">Espessura da Chapa (T)</label>
+                        <span id="val-thickness" class="text-sm font-mono text-orange-400">10 mm</span>
+                    </div>
+                    <input type="range" id="input-thickness" min="5" max="50" step="1" value="10" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-orange-500">
+                </div>
+
+                <div class="mb-5">
+                    <div class="flex justify-between mb-1">
+                        <label class="text-sm font-semibold text-slate-300">Folga na Raiz (b)</label>
+                        <span id="val-gap" class="text-sm font-mono text-orange-400">2 mm</span>
+                    </div>
+                    <input type="range" id="input-gap" min="0" max="10" step="0.5" value="2" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-orange-500">
+                </div>
+
+                <div class="mb-5">
+                    <div class="flex justify-between mb-1">
+                        <label class="text-sm font-semibold text-slate-300">Nariz / Face da Raiz (c)</label>
+                        <span id="val-land" class="text-sm font-mono text-orange-400">2 mm</span>
+                    </div>
+                    <input type="range" id="input-land" min="0" max="10" step="0.5" value="2" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-orange-500">
+                </div>
+
+                <div class="mb-5">
+                    <div class="flex justify-between mb-1">
+                        <label class="text-sm font-semibold text-slate-300">Ângulo do Bisel (α)</label>
+                        <span id="val-angle" class="text-sm font-mono text-orange-400">30°</span>
+                    </div>
+                    <input type="range" id="input-angle" min="0" max="60" step="1" value="30" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-orange-500">
+                    <p class="text-[10px] text-slate-500 text-right mt-1">*Ângulo por lado (Total = 2α)</p>
+                </div>
+
+                <div id="container-radius" class="mb-5 hidden opacity-50 transition-all">
+                    <div class="flex justify-between mb-1">
+                        <label class="text-sm font-semibold text-slate-300">Raio da Curva (R)</label>
+                        <span id="val-radius" class="text-sm font-mono text-orange-400">6 mm</span>
+                    </div>
+                    <input type="range" id="input-radius" min="2" max="15" step="0.5" value="6" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-orange-500">
+                </div>
+
+            </div>
+
+            <div class="bg-gradient-to-r from-slate-800 to-slate-900 rounded-xl border border-blue-900/50 p-5 shadow-lg">
+                <h3 class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-3">Cálculo de Volume</h3>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-slate-900/50 p-3 rounded border border-slate-700">
+                        <p class="text-[10px] text-slate-400 uppercase">Área Transversal</p>
+                        <p id="res-area" class="text-2xl font-bold text-white">0 <span class="text-sm font-normal text-slate-500">mm²</span></p>
+                    </div>
+                    <div class="bg-slate-900/50 p-3 rounded border border-slate-700">
+                        <p class="text-[10px] text-slate-400 uppercase">Peso Estimado (1m)</p>
+                        <p id="res-weight" class="text-2xl font-bold text-green-400">0 <span class="text-sm font-normal text-slate-500">kg</span></p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        // Init Icons
+        lucide.createIcons();
+
+        // --- VARIABLES ---
+        let scene, camera, renderer, controls;
+        let leftPlate, rightPlate, weldVolume;
+        let currentShape = 'V';
+        
+        // Parameters (Defaults)
+        let params = {
+            T: 10,   // Thickness
+            b: 2,    // Gap
+            c: 2,    // Land/Root Face
+            a: 30,   // Angle (degrees)
+            r: 6     // Radius (for U)
+        };
+
+        const container = document.getElementById('canvas-container');
+
+        // --- THREE.JS SETUP ---
+        function init() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x1e293b); // Matches tailwind slate-800
+            
+            // Camera
+            const aspect = container.clientWidth / container.clientHeight;
+            camera = new THREE.PerspectiveCamera(50, aspect, 0.1, 1000);
+            camera.position.set(0, 5, 40); // Front view initially
+
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.shadowMap.enabled = true;
+            container.appendChild(renderer.domElement);
+
+            // Controls
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+
+            // Lights
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            dirLight.position.set(10, 20, 20);
+            scene.add(dirLight);
+            
+            const backLight = new THREE.DirectionalLight(0xffffff, 0.3);
+            backLight.position.set(-10, 10, -20);
+            scene.add(backLight);
+
+            // Helpers (Grid)
+            const gridHelper = new THREE.GridHelper(100, 50, 0x334155, 0x1e293b);
+            gridHelper.position.y = -10;
+            scene.add(gridHelper);
+
+            // Initial Build
+            updateGeometry();
+
+            // Event Listeners
+            window.addEventListener('resize', onWindowResize);
+            setupUISliders();
+
+            animate();
+        }
+
+        // --- GEOMETRY GENERATION ---
+        
+        function updateGeometry() {
+            // Cleanup old meshes
+            if(leftPlate) scene.remove(leftPlate);
+            if(rightPlate) scene.remove(rightPlate);
+            if(weldVolume) scene.remove(weldVolume);
+
+            // Materials
+            const steelMat = new THREE.MeshStandardMaterial({ 
+                color: 0x94a3b8, // Slate 400
+                roughness: 0.4, 
+                metalness: 0.6,
+                side: THREE.DoubleSide
+            });
+            
+            const weldMat = new THREE.MeshStandardMaterial({
+                color: 0xf97316, // Orange 500
+                transparent: true,
+                opacity: 0.5,
+                emissive: 0xf97316,
+                emissiveIntensity: 0.2,
+                side: THREE.DoubleSide
+            });
+
+            // Calculate Profile Points based on Shape Type
+            const width = 20; // Width of the plate section
+            const length = 40; // Length of extrusion (depth into screen)
+
+            const halfGap = params.b / 2;
+            const t = params.T;
+            const land = Math.min(params.c, t); // Land cannot exceed thickness
+            const angleRad = params.a * (Math.PI / 180);
+
+            let shape = new THREE.Shape();
+            let weldShape = new THREE.Shape();
+
+            // --- SHAPE LOGIC (Right Side Plate Profile) ---
+            // Coordinate system: X=0 is center of joint. Y=0 is bottom of plate (for V/U) or center (for X/DU)
+            
+            if (currentShape === 'V') {
+                // Bottom point at gap
+                shape.moveTo(halfGap, 0);
+                // Up to land height
+                shape.lineTo(halfGap, land);
+                // Angled line to top surface
+                // x = halfGap + (T - land) * tan(a)
+                const topX = halfGap + ((t - land) * Math.tan(angleRad));
+                shape.lineTo(topX, t);
+                // Out to width
+                shape.lineTo(width + halfGap, t);
+                // Down to bottom
+                shape.lineTo(width + halfGap, 0);
+                // Back to start
+                shape.lineTo(halfGap, 0);
+
+                // Weld Volume Shape (Half, then we mirror visual)
+                weldShape.moveTo(0,0);
+                weldShape.lineTo(halfGap, 0);
+                weldShape.lineTo(halfGap, land);
+                weldShape.lineTo(topX, t);
+                weldShape.lineTo(0, t);
+                weldShape.lineTo(0,0);
+
+            } else if (currentShape === 'X') {
+                // X joint (Double V) - Symmetrical around Y=T/2
+                const mid = t / 2;
+                const halfLand = land / 2;
+                
+                // Start center-right of gap
+                shape.moveTo(halfGap, mid - halfLand);
+                // Top bevel
+                const topX = halfGap + ((mid - halfLand) * Math.tan(angleRad));
+                shape.lineTo(topX, t);
+                // Right
+                shape.lineTo(width + halfGap, t);
+                // Down
+                shape.lineTo(width + halfGap, 0);
+                // Bottom bevel start (at bottom surface)
+                shape.lineTo(topX, 0); // Symmetric X
+                // Up to land bottom
+                shape.lineTo(halfGap, mid + halfLand);
+                // Close land
+                shape.lineTo(halfGap, mid - halfLand); // Back to start
+
+                // Weld Volume
+                weldShape.moveTo(0, 0);
+                weldShape.lineTo(topX, 0);
+                weldShape.lineTo(halfGap, mid + halfLand);
+                weldShape.lineTo(halfGap, mid - halfLand);
+                weldShape.lineTo(topX, t);
+                weldShape.lineTo(0, t);
+                weldShape.lineTo(0, 0);
+            } 
+            else if (currentShape === 'U') {
+                // U Shape
+                // Vertical land, then Curve radius, then Angle
+                
+                // Start
+                shape.moveTo(halfGap, 0);
+                // Up land
+                shape.lineTo(halfGap, land);
+                
+                // The curve: Center of circle is at (halfGap + Radius, land + Radius)
+                const cx = halfGap + params.r;
+                const cy = land + params.r;
+                
+                // We want to draw an arc from (halfGap, land) 
+                // We need to find the tangent point where angle becomes alpha.
+                // Simple version: Quarter circle to vertical? No, U joint usually goes to the angle.
+                
+                // Let's use Bezier for smooth approx or simple Arc
+                // Arc from -180 deg (Left) to -90+Angle deg
+                
+                const startAngle = Math.PI; // 9 o'clock relative to center
+                const endAngle = Math.PI + (Math.PI/2 - angleRad); // 
+                
+                // Actually, standard U: Straight up land, then quarter circle R, then straight line at angle alpha?
+                // Often it's just R at bottom, then straight bevel.
+                
+                // Let's simulate: Arc from (halfGap, land) 
+                // Center needs to be offset by R
+                shape.absarc(halfGap + params.r, land + params.r, params.r, Math.PI, Math.PI + (Math.PI/2 - angleRad), true); // Clockwise? No
+                
+                // From the end of arc, calculate line to top
+                // We let ThreeJS connect the arc end to the next point?
+                // We need to calculate where the line hits Y=T
+                
+                // Let's simplify visualization: Just draw the curve up to angle, then line extension
+                // Point on circle at angle alpha
+                // x = cx - R * sin(alpha) ??
+                // Let's stick to a simpler geometry for web visualization:
+                // Land -> Arc (quarter circle) -> Tangent line (alpha=0 for J-prep, alpha>0 for U)
+                
+                // For this code, let's do a strict U: Vertical Land -> Quarter Circle -> Tangent Line (if needed) or just straight up if alpha=0.
+                // If alpha > 0, it flares out.
+                
+                // Using bezierCurveTo for easier control
+                const cp1x = halfGap; 
+                const cp1y = land + params.r * 0.5;
+                const cp2x = halfGap + params.r * 0.5;
+                const cp2y = land + params.r;
+                const endRx = halfGap + params.r;
+                const endRy = land + params.r;
+                
+                shape.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, endRx, endRy);
+                
+                // Now straight line at angle
+                // From (endRx, endRy) go up to T
+                const hRemaining = t - endRy;
+                if(hRemaining > 0) {
+                    const dx = hRemaining * Math.tan(angleRad);
+                    shape.lineTo(endRx + dx, t);
+                } else {
+                    // Radius was too big for thickness, clamp
+                     // shape.lineTo(endRx, t); // approximate
+                }
+
+                shape.lineTo(width + halfGap, t);
+                shape.lineTo(width + halfGap, 0);
+                shape.lineTo(halfGap, 0);
+
+                // Weld Vol (Approximation)
+                weldShape.moveTo(0,0);
+                weldShape.lineTo(halfGap, 0);
+                weldShape.lineTo(halfGap, land);
+                weldShape.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, endRx, endRy);
+                if(hRemaining > 0) {
+                     const dx = hRemaining * Math.tan(angleRad);
+                     weldShape.lineTo(endRx + dx, t);
+                }
+                weldShape.lineTo(0, t);
+                weldShape.lineTo(0,0);
+            }
+            else if (currentShape === 'DU') {
+                // Double U
+                const mid = t/2;
+                const halfLand = land/2;
+
+                // Top Half U
+                shape.moveTo(halfGap, mid - halfLand);
+                
+                // Bezier Up
+                const endRy = mid + halfLand + params.r;
+                const endRx = halfGap + params.r;
+                shape.bezierCurveTo(halfGap, mid + halfLand + params.r*0.5, halfGap + params.r*0.5, endRy, endRx, endRy);
+                
+                // Line to top
+                const hRemTop = t - endRy;
+                if(hRemTop > 0) shape.lineTo(endRx + (hRemTop * Math.tan(angleRad)), t);
+                
+                shape.lineTo(width+halfGap, t);
+                shape.lineTo(width+halfGap, 0);
+
+                // Bottom Half U (Mirror logic)
+                const endRyBot = mid - halfLand - params.r;
+                const hRemBot = endRyBot; // distance to 0
+                
+                if(hRemBot > 0) shape.lineTo(endRx + (hRemBot * Math.tan(angleRad)), 0);
+                else shape.lineTo(width+halfGap, 0); // clamp
+
+                // Bezier In to land
+                shape.lineTo(endRx, endRyBot);
+                shape.bezierCurveTo(endRx, endRyBot, halfGap + params.r*0.5, mid - halfLand - params.r, halfGap, mid - halfLand);
+                
+                // Weld Shape
+                weldShape.moveTo(0,0);
+                if(hRemBot > 0) weldShape.lineTo(endRx + (hRemBot * Math.tan(angleRad)), 0);
+                weldShape.lineTo(endRx, endRyBot);
+                weldShape.bezierCurveTo(endRx, endRyBot, halfGap + params.r*0.5, mid - halfLand - params.r, halfGap, mid - halfLand);
+                weldShape.lineTo(halfGap, mid + halfLand); // Land vertical
+                weldShape.bezierCurveTo(halfGap, mid + halfLand + params.r*0.5, halfGap + params.r*0.5, endRy, endRx, endRy);
+                if(hRemTop > 0) weldShape.lineTo(endRx + (hRemTop * Math.tan(angleRad)), t);
+                weldShape.lineTo(0, t);
+            }
+
+            // Extrude Settings
+            const extrudeSettings = { steps: 1, depth: length, bevelEnabled: false };
+
+            // Create Right Plate
+            const rightGeo = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+            rightPlate = new THREE.Mesh(rightGeo, steelMat);
+            
+            // Center geometry
+            rightPlate.position.z = -length / 2;
+            rightPlate.castShadow = true;
+            rightPlate.receiveShadow = true;
+            scene.add(rightPlate);
+
+            // Create Left Plate (Clone and Mirror)
+            leftPlate = rightPlate.clone();
+            leftPlate.scale.x = -1; // Mirror across X axis
+            // Flip normals logic for lighting to work correctly on mirrored mesh usually requires care, 
+            // but distinct mesh is safer.
+            const leftGeo = rightGeo.clone();
+            leftPlate = new THREE.Mesh(leftGeo, steelMat);
+            leftPlate.scale.x = -1;
+            leftPlate.position.z = -length / 2;
+            leftPlate.castShadow = true;
+            leftPlate.receiveShadow = true;
+            
+            // Fix winding order for mirrored geometry lighting
+            // (ThreeJS handles scale -1 reasonably well usually, but let's leave it)
+            scene.add(leftPlate);
+
+            // Create Weld Volume
+            // Mirror the half-shape for the weld volume
+            // We need a full shape for the center
+            // Simplification: Extrude the right half, scale X -1 for left half, put them together? 
+            // Better: Just make the right half and scale X -1 for the other side visual.
+            const weldGeo = new THREE.ExtrudeGeometry(weldShape, extrudeSettings);
+            
+            const volRight = new THREE.Mesh(weldGeo, weldMat);
+            volRight.position.z = -length/2;
+            
+            const volLeft = volRight.clone();
+            volLeft.scale.x = -1;
+
+            weldVolume = new THREE.Group();
+            weldVolume.add(volRight);
+            weldVolume.add(volLeft);
+            scene.add(weldVolume);
+
+            // Shift everything down to center on screen
+            const yOffset = -t / 2;
+            rightPlate.position.y = yOffset;
+            leftPlate.position.y = yOffset;
+            weldVolume.position.y = yOffset;
+
+            calculateArea();
+        }
+
+        // --- MATH & CALCULATIONS ---
+        function calculateArea() {
+            const t = params.T;
+            const b = params.b;
+            const c = params.c; // Land
+            const rad = params.a * (Math.PI / 180);
+            
+            let area = 0;
+
+            // Simple Geometric Area Calculation (Void area)
+            
+            if (currentShape === 'V') {
+                // 1. Root Rectangle: b * t
+                const rectArea = b * t;
+                
+                // 2. Bevel Triangles (2 triangles)
+                // Height of triangle = t - c
+                // Width of triangle = (t - c) * tan(alpha)
+                // Area of 1 triangle = 0.5 * height * width
+                // Total bevel area = height * width
+                const h_tri = Math.max(0, t - c);
+                const w_tri = h_tri * Math.tan(rad);
+                const bevelArea = h_tri * w_tri; // already accounts for 2 sides
+                
+                area = rectArea + bevelArea;
+            } 
+            else if (currentShape === 'X') {
+                // Double V
+                // 1. Root Rectangle
+                const rectArea = b * t;
+                
+                // 2. Bevel Triangles
+                // Height of triangle = (t/2) - (c/2)
+                const h_tri = Math.max(0, (t/2) - (c/2));
+                const w_tri = h_tri * Math.tan(rad);
+                // 4 Triangles total (2 top, 2 bottom)
+                // Area = 4 * 0.5 * w * h = 2 * w * h
+                const bevelArea = 2 * w_tri * h_tri;
+                
+                area = rectArea + bevelArea;
+            }
+            else if (currentShape === 'U' || currentShape === 'DU') {
+                // Approximation for U
+                // 1. Root Rectangle
+                const rectArea = b * t;
+                
+                // 2. Side Areas
+                // Approximating U as a rectangle + triangle roughly, or calculating specific area of shape
+                // Let's use the Polygon area of the Weld Shape we generated for accuracy? 
+                // Or simplified formula: Area = 2 * [ (Area defined by profile curve) ]
+                // Profile U roughly: (t-c) height. Average width? 
+                
+                // Let's do logical summation:
+                // Rect part above curve: width at top * height? No.
+                
+                // Standard U calculation:
+                // Gap Area = b * t
+                // Radius Area = 2 * (Area of box R*R - Area of 1/4 circle)
+                // Bevel Line Area = Triangles above the Radius
+                
+                const R = params.r;
+                // Area added by Radius part (the curve outwards)
+                // Box R*R minus quarter circle (PI*R^2/4). This is the "corner" removed from steel = added to weld.
+                const cornerArea = (R*R) - (Math.PI * R*R / 4);
+                
+                // Area added by straight bevel on top of radius
+                // Height remaining = t - c - R
+                const h_rem = Math.max(0, t - c - R);
+                // The width at the start of bevel is Gap + 2R. 
+                // The bevel adds triangle area.
+                const w_tri = h_rem * Math.tan(rad);
+                const triArea = h_rem * w_tri; // 2 sides included
+                
+                // Rectangular area formed by the outward shift of R?
+                // The gap is b. The land is c.
+                // Above the land, the width opens by R immediately? No, it curves.
+                // The "Corner Area" calculation handles the curve part relative to a straight vertical wall.
+                // So: Base Gap Rect (b*t) + 2 * (Rect R*(t-c) - QuarterCircle??)
+                
+                // Let's stick to the visual shape logic:
+                // Base Rectangle (b * t)
+                // Plus 2 * (Area of bounding box of curve - Area of metal left)
+                // Effectively: 2 * (CornerArea) + Bevel Triangle Area + Rectangular area above radius due to radius width?
+                
+                // Accurate Formula U:
+                // 1. Central Gap: b * t
+                // 2. The U flare: 2 * [ (1 - PI/4)*R^2  +  R*(t-c-R) ]  <-- Rect above + curve corner
+                // 3. The Bevel Flare: (t-c-R)^2 * tan(alpha)
+                
+                const flareHeight = Math.max(0, t - c - R);
+                const curveArea = 2 * ( (R*R) - (Math.PI*R*R/4) ); // The material removed by the curve
+                const rectExtensionArea = 2 * (R * flareHeight); // The width added by R extending up
+                const bevelArea = flareHeight * (flareHeight * Math.tan(rad)); // The bevel triangles
+                
+                area = rectArea + curveArea + rectExtensionArea + bevelArea;
+                
+                if(currentShape === 'DU') {
+                    // Double U logic... mirror it.
+                    // Roughly: Gap area + 2 * (Top U + Bottom U)
+                    // The "t" in formulas becomes t/2 essentially.
+                    
+                    // Let's reuse logic for half thickness
+                    const halfT = t/2;
+                    const halfC = c/2;
+                    const h_f = Math.max(0, halfT - halfC - R);
+                    
+                    const cArea = 2 * ((R*R) - (Math.PI*R*R/4));
+                    const rExt = 2 * (R * h_f);
+                    const bArea = h_f * (h_f * Math.tan(rad));
+                    
+                    // This is for ONE side (top).
+                    // Total = Gap + Top + Bottom
+                    area = (b*t) + 2*(cArea + rExt + bArea); // wait, cArea includes 2 sides (left/right). 
+                    // So just double the "add-on" parts.
+                }
+            }
+
+            // Display
+            document.getElementById('res-area').innerHTML = area.toFixed(1) + ' <span class="text-sm font-normal text-slate-500">mm²</span>';
+            
+            // Weight Calculation (Steel ~ 7.85 g/cm3)
+            // Volume for 1 meter = Area (mm2) * 1000 (mm) = mm3
+            // mm3 to cm3 = / 1000
+            // So Volume (cm3) = Area (mm2)
+            // Weight (g) = Area * 7.85
+            // Weight (kg) = (Area * 7.85) / 1000
+            
+            const weight = (area * 7.85) / 1000;
+            document.getElementById('res-weight').innerHTML = weight.toFixed(2) + ' <span class="text-sm font-normal text-slate-500">kg</span>';
+        }
+
+        // --- INTERACTION ---
+
+        function setupUISliders() {
+            const inputs = ['thickness', 'gap', 'land', 'angle', 'radius'];
+            
+            inputs.forEach(id => {
+                const el = document.getElementById('input-' + id);
+                const disp = document.getElementById('val-' + id);
+                
+                el.addEventListener('input', (e) => {
+                    let val = parseFloat(e.target.value);
+                    
+                    // Logic Constraints
+                    if(id === 'land' && val > params.T) val = params.T;
+                    
+                    // Update Params
+                    if(id === 'thickness') params.T = val;
+                    if(id === 'gap') params.b = val;
+                    if(id === 'land') params.c = val;
+                    if(id === 'angle') params.a = val;
+                    if(id === 'radius') params.r = val;
+
+                    // Update Display
+                    disp.innerText = val + (id === 'angle' ? '°' : ' mm');
+                    
+                    // Rebuild
+                    updateGeometry();
+                });
+            });
+        }
+
+        function setShape(shape) {
+            currentShape = shape;
+            
+            // Toggle Radius UI
+            const radContainer = document.getElementById('container-radius');
+            if (shape === 'U' || shape === 'DU') {
+                radContainer.classList.remove('hidden');
+                setTimeout(() => radContainer.classList.remove('opacity-50'), 50);
+            } else {
+                radContainer.classList.add('opacity-50');
+                setTimeout(() => radContainer.classList.add('hidden'), 200);
+            }
+
+            // Update Buttons State
+            ['V','X','U','DU'].forEach(s => {
+                const btn = document.getElementById('btn-' + s);
+                if(s === shape) {
+                    btn.className = "p-3 rounded bg-blue-600 text-white font-bold border border-blue-500 transition-all shadow-[0_0_15px_rgba(37,99,235,0.5)]";
+                } else {
+                    btn.className = "p-3 rounded bg-slate-700 text-slate-400 font-bold border border-slate-600 hover:bg-slate-600 transition-all";
+                }
+            });
+
+            // Adjust default values slightly for better UX
+            if(shape === 'X' || shape === 'DU') {
+                // If switching to double, maybe reduce root face? 
+                // Keeping current values is usually less confusing though.
+            }
+
+            updateGeometry();
+        }
+
+        function resetCamera(view) {
+            if(view === 'front') {
+                camera.position.set(0, 0, 50);
+                camera.lookAt(0, 0, 0);
+            } else {
+                camera.position.set(25, 25, 40);
+                camera.lookAt(0, 0, 0);
+            }
+            controls.reset(); // helps clearing orbit state
+            if(view === 'front') camera.position.set(0, 0, 50); // force again
+            else camera.position.set(25, 25, 40);
+        }
+
+        function onWindowResize() {
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        // Run
+        init();
+        setShape('V'); // Trigger initial button state
+
+    </script>
+</body>
+</html>
