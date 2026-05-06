@@ -1,0 +1,146 @@
+.topView {
+  width: 250px;
+  height: 150px;
+  border: 2px solid #000;
+  display: flex;
+  margin-top: 3rem;
+  position: relative;
+}
+
+.topViewOtherSide {
+  position: absolute;
+  right: 0;
+  left: 0;
+  top: -4px;
+  height: 6px;
+  z-index: 2;
+}
+
+.topViewLeft {
+  width: 60%;
+  height: 100%;
+  position: relative;
+}
+
+.topViewLeftEdge {
+  position: absolute;
+  left: -4px;
+  width: 5px;
+  bottom: 0;
+  top: 0;
+}
+
+.topViewLeftRightCut {
+  position: absolute;
+  right: -5px;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+}
+
+.topViewLeftActive {
+  background-color: #f24c3d;
+}
+
+.topViewRight {
+  width: 40%;
+  height: 100%;
+  border-left: 2px solid #000;
+  position: relative;
+  background-color: transparent;
+}
+
+.topViewMiddleEdge {
+  position: absolute;
+  left: -4px;
+  width: 5px;
+  top: 0;
+  bottom: 0;
+}
+
+.topViewRightEdge {
+  position: absolute;
+  right: -3px;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+}
+
+.topViewRightActive {
+  background-color: #f24c3d;
+}
+
+.topViewRightCut {
+  position: absolute;
+  width: 50%;
+  height: 40%;
+  top: 50%;
+  transform: translateY(-50%);
+  right: -3px;
+  z-index: 2;
+  border: 2px solid #000;
+  border-right-color: #fff;
+  background-color: #fff;
+}
+
+.topViewRightMiddle {
+  position: absolute;
+  left: -4px;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+}
+
+.topViewRightMiddleBottom {
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 5px;
+}
+
+.topViewRightMiddleTop {
+  position: absolute;
+  top: -4px;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 5px;
+}
+
+.topViewLeftCut {
+  position: absolute;
+  width: 50%;
+  height: 60%;
+  left: 0;
+  bottom: 0;
+  z-index: 2;
+  border: 2px dashed #000;
+  border-left: none;
+  border-bottom: none;
+}
+
+.topViewSideCut {
+  width: 100%;
+  height: 5%;
+  position: absolute;
+  right: 0;
+  left: 0;
+  bottom: 0;
+  background-color: transparent;
+  z-index: 3;
+  cursor: pointer;
+}
+
+.topViewSideCutActive {
+  background-color: #f24c3d;
+}
+
+.topViewTopAction {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -4px;
+  height: 6px;
+}

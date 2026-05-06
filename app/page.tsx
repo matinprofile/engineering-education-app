@@ -33,7 +33,7 @@ const adhesiveQuickLinks = [
 
 const joiningFormingQuickLinks = [
   { label: "Manufacturing", href: "/manufacturing", icon: iconManufacturing },
-  { label: "Design", href: "https://clinching-app-git-master-mahmoud-matins-projects.vercel.app/projects/clinching", icon: iconDesign },
+  { label: "Design", href: "/joining-forming/clinching", icon: iconDesign },
 ];
 
 const weldingQuickLinks = [
@@ -41,12 +41,12 @@ const weldingQuickLinks = [
 ];
 
 const materialScienceQuickLinks = [
-  { label: "Design", href: "https://engineering-virtual-learning-platfo.vercel.app/en/platmat", icon: iconDesign },
+  { label: "Design", href: "/material-science", icon: iconDesign },
   { label: "YouTube", href: "https://www.youtube.com/watch?v=jvwq5BT4R1g&list=PLZScjc7Bq4IXKqd24t4e85N9PsTDVhS9o", icon: iconYouTube },
 ];
 
 const technicalDrawingQuickLinks = [
-  { label: "Design", href: "https://engineering-virtual-learning-platfo.vercel.app/en/technical-drawing", icon: iconDesign },
+  { label: "Design", href: "/technical-drawing", icon: iconDesign },
 ];
 
 export default function Home() {
@@ -77,11 +77,15 @@ export default function Home() {
                           : category.slug === "material-science"
                             ? materialScienceQuickLinks
                             : technicalDrawingQuickLinks).map((link) => (
+                      (() => {
+                        const externalLink = link.href.startsWith("http");
+
+                        return (
                       <div key={link.label} className="flex w-20 flex-col items-center gap-1 text-center">
                         <a
                           href={link.href}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                          target={externalLink ? "_blank" : undefined}
+                          rel={externalLink ? "noopener noreferrer" : undefined}
                           aria-label={`Open ${link.label}`}
                           className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[color:var(--border)] bg-white text-muted transition-all duration-300 hover:border-accent/40 hover:bg-accent/8 hover:text-accent"
                         >
@@ -91,6 +95,8 @@ export default function Home() {
                           {link.label}
                         </span>
                       </div>
+                        );
+                      })()
                     ))}
                   </div>
                 ) : undefined
@@ -99,26 +105,6 @@ export default function Home() {
           ))}
         </div>
       </SectionWrapper>
-
-
-
-      {/* Stats strip */}
-      <section className="border-y border-[color:var(--border)] bg-primary/55">
-        <div className="mx-auto grid w-full max-w-7xl grid-cols-2 gap-px divide-[color:var(--border)] px-4 py-12 sm:px-6 md:grid-cols-4 lg:px-8">
-          {[
-            { value: "5", label: "Core Engineering Modules" },
-            { value: "20+", label: "Years of Research Experience" },
-            { value: "750+", label: "Publications in SCOPUS" },
-            { value: "25k+", label: "Academic Citations" },
-          ].map((stat) => (
-            <div key={stat.label} className="px-6 text-center">
-              <p className="font-heading text-4xl font-bold text-accent">{stat.value}</p>
-              <p className="mt-2 text-sm text-muted">{stat.label}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
 
     </div>
   );

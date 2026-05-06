@@ -1,7 +1,77 @@
-import { TopicPage } from "@/components/topic/TopicPage";
-import { topicPageContent } from "@/lib/topics";
+import Link from "next/link";
+import { SectionWrapper } from "@/components/ui/SectionWrapper";
+import { TopicIcon } from "@/components/ui/TopicIcon";
+
+const interactiveModules = [
+  {
+    title: "Clinching Simulator",
+    href: "/joining-forming/clinching",
+    description:
+      "Interactive parameter-to-video exploration for die depth, clearance, inclination, and other clinching controls.",
+  },
+];
+
+const focusAreas = [
+  "Die and punch geometry influence",
+  "Material flow sensitivity to parameter bounds",
+  "Visual comparison of min and max settings",
+  "Video-based process interpretation",
+];
 
 export default function JoiningFormingPage() {
-  const content = topicPageContent["joining-forming"];
-  return <TopicPage {...content} />;
+  return (
+    <div className="w-full pb-10">
+      <section className="relative overflow-hidden border-b border-[color:var(--border)] bg-primary/55">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_50%,rgba(140,45,25,0.14),transparent_50%),radial-gradient(circle_at_90%_10%,rgba(247,218,211,0.42),transparent_52%)]" />
+        <div className="relative mx-auto w-full max-w-7xl px-4 py-20 sm:px-6 sm:py-24 lg:px-8">
+          <Link href="/" className="mb-6 inline-flex items-center gap-2 text-xs font-medium uppercase tracking-widest text-muted transition-colors hover:text-accent">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
+            Back to Home
+          </Link>
+          <p className="mb-5 inline-flex rounded-full border border-accent/50 bg-accent/10 px-4 py-1 text-xs uppercase tracking-[0.22em] text-accent">Engineering Education</p>
+          <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+            <div>
+              <h1 className="font-heading text-4xl font-bold leading-tight text-text sm:text-5xl lg:text-6xl">Joining by Forming</h1>
+              <p className="mt-4 text-lg font-medium text-accent/80">Interactive tools for clinching and forming-based joining design</p>
+            </div>
+            <div className="text-accent">
+              <TopicIcon name="joining-forming" className="h-20 w-20 sm:h-24 sm:w-24" />
+            </div>
+          </div>
+          <p className="mt-5 max-w-3xl text-base leading-8 text-muted sm:text-lg">
+            This module extends joining-by-forming with local interactive applications and keeps the same shell, navigation, and style used across this project.
+          </p>
+        </div>
+      </section>
+
+      <SectionWrapper title="Interactive Modules" subtitle="Choose a forming-based application to open local simulations.">
+        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+          {interactiveModules.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="rounded-2xl border border-[color:var(--border)] bg-white p-6 shadow-[0_16px_40px_rgba(48,54,44,0.08)] transition-all duration-300 hover:-translate-y-1 hover:border-accent/50 hover:shadow-[0_18px_40px_rgba(140,45,25,0.14)]"
+            >
+              <h2 className="font-heading text-2xl font-semibold text-text">{item.title}</h2>
+              <p className="mt-3 text-sm leading-7 text-muted">{item.description}</p>
+            </Link>
+          ))}
+        </div>
+      </SectionWrapper>
+
+      <SectionWrapper title="Learning Focus" subtitle="Key skills developed by the joining-by-forming interactive content.">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {focusAreas.map((area) => (
+            <article
+              key={area}
+              className="flex items-start gap-3 rounded-xl border border-[color:var(--border)] bg-white p-5 text-sm leading-7 text-muted transition-all duration-300 hover:border-accent/40 hover:bg-primary/40 hover:text-text"
+            >
+              <span className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-accent/70" />
+              <span>{area}</span>
+            </article>
+          ))}
+        </div>
+      </SectionWrapper>
+    </div>
+  );
 }

@@ -1,0 +1,77 @@
+{
+    "name": "BCC",
+    "vertices": [
+        [0, 0, 0],
+        [1, 0, 0],
+        [0, 1, 0],
+        [0, 0, 1],
+        [1, 1, 0],
+        [0, 1, 1],
+        [1, 0, 1],
+        [1, 1, 1],
+        [0.5, 0.5, 0.5]
+    ],
+    "planes": [
+        {
+            "outlineVertices": [3, 6, 7, 5],
+            "inlineVertices": [3, 6, 7, 5],
+            "projection": {
+                "vertices": [
+                    [0, 0],
+                    [1, 0],
+                    [1, 1],
+                    [0, 1]
+                ],
+                "points": [
+                    [0, 0],
+                    [1, 0],
+                    [1, 1],
+                    [0, 1]
+                ]
+            }
+        },
+        {
+            "outlineVertices": [1, 4, 5, 3],
+            "inlineVertices": [1, 4, 5, 3],
+            "projection": {
+                "vertices": [
+                    [0, 0],
+                    ["sqrt(2)", 0],
+                    ["sqrt(2)", 1],
+                    [0, 1]
+                ],
+                "points": [
+                    [0, 0],
+                    ["sqrt(2)", 0],
+                    ["sqrt(2)/2", 0.5],
+                    ["sqrt(2)", 1],
+                    [0, 1]
+                ]
+            }
+        },
+        {
+            "outlineVertices": [1, 2, 3],
+            "inlineVertices": [1, 2, 3],
+            "projection": {
+                "vertices": [
+                    [0, 0],
+                    ["sqrt(2)/2", "sqrt(6)/2"],
+                    ["sqrt(2)", 0]
+                ],
+                "points": [
+                    [0, 0],
+                    ["sqrt(2)/2", "sqrt(6)/2"],
+                    ["sqrt(2)", 0]
+                ]
+            }
+        }
+    ],
+    "isHexagonal": false,
+    "atomSize": 260,
+    "idCardImages": {
+        "coordNum": "structureImages/BCCCoordNo.png",
+        "edgeVol": "structureImages/BCCEdgeVol.png",
+        "numAtoms": "structureImages/BCCNumAtoms.png",
+        "AOF": "structureImages/BCCAOF.png"
+    }
+}

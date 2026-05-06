@@ -1,0 +1,78 @@
+.sideView {
+  border: 2px solid #ddd;
+  width: 250px;
+  height: 150px;
+  display: flex;
+}
+
+.sideViewRight {
+  width: 40%;
+  height: 100%;
+  position: relative;
+}
+
+.sideViewLeftTopCut {
+  width: 100%;
+  height: 50%;
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  z-index: 2;
+  border: 2px solid #ddd;
+  border-left-color: #fff;
+  border-top-color: #fff;
+  box-sizing: content-box;
+  background-color: #fff;
+}
+
+.sideViewLeftTopCutActive {
+  border-top: 2px solid #000;
+  border-left: 2px solid #000;
+}
+
+.sideViewLeftTopCutActiveTop {
+  border-top: none;
+  border-left: none;
+  border-right-color: #000;
+  border-bottom-color: #000;
+}
+
+.sideViewLeftBottomCut {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 50%;
+  height: 25%;
+  border-right: 2px solid #ddd;
+  border-top: 2px solid #ddd;
+  background-color: #fff;
+}
+
+.sideViewLeftBottomCutActive {
+  border-top-color: #000;
+  border-right-color: #000;
+}
+
+.sideViewRightCut {
+  width: 50%;
+  height: 100%;
+  border-left: 2px dashed #ddd;
+  z-index: 2;
+  position: absolute;
+  right: 0;
+  bottom: 0;
+}
+
+.sideViewRightCutActive {
+  border-left-color: #000;
+}
+
+.sideViewLeft {
+  width: 60%;
+  height: 100%;
+  position: relative;
+}
+
+.sideViewActive {
+  border-color: #000;
+}

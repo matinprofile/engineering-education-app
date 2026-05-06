@@ -1,0 +1,92 @@
+{
+    "name": "FCC",
+    "vertices": [
+        [0, 0, 0],
+        [1, 0, 0],
+        [0, 1, 0],
+        [0, 0, 1],
+        [1, 1, 0],
+        [0, 1, 1],
+        [1, 0, 1],
+        [1, 1, 1],
+        [0, 0.5, 0.5],
+        [1, 0.5, 0.5],
+        [0.5, 0, 0.5],
+        [0.5, 1, 0.5],
+        [0.5, 0.5, 0],
+        [0.5, 0.5, 1]
+    ],
+    "planes": [
+        {
+            "outlineVertices": [3, 6, 7, 5],
+            "inlineVertices": [3, 6, 7, 5],
+            "projection": {
+                "vertices": [
+                    [0, 0],
+                    [1, 0],
+                    [1, 1],
+                    [0, 1]
+                ],
+                "points": [
+                    [0, 0],
+                    [1, 0],
+                    [1, 1],
+                    [0, 1],
+                    [0.5, 0.5]
+                ]
+            }
+        },
+        {
+            "outlineVertices": [1, 4, 5, 3],
+            "inlineVertices": [1, 4, 5, 3, 10, 11],
+            "projection": {
+                "vertices": [
+                    [0, 0],
+                    ["sqrt(2)", 0],
+                    ["sqrt(2)", 1],
+                    [0, 1]
+                ],
+                "points": [
+                    [0, 0],
+                    ["sqrt(2)", 0],
+                    ["sqrt(2)/2", 1],
+                    ["sqrt(2)/2", 0],
+                    ["sqrt(2)", 1],
+                    [0, 1]
+                ]
+            }
+        },
+        {
+            "outlineVertices": [1, 2, 3],
+            "inlineVertices": [1, 2, 3, 8, 10, 12],
+            "projection": {
+                "vertices": [
+                    [0, 0],
+                    ["sqrt(2)/2", "sqrt(6)/2"],
+                    ["sqrt(2)", 0]
+                ],
+                "points": [
+                    [0, 0],
+                    ["sqrt(2)/2", 0],
+                    ["sqrt(2)", 0],
+                    ["sqrt(2)/2", "sqrt(6)/2"],
+                    ["sqrt(2)/4", "sqrt(6)/4"],
+                    ["sqrt(2)-sqrt(2)/4", "sqrt(6)/4"]
+                ]
+            }
+        }
+    ],
+    "isHexagonal": false,
+    "atomSize": 215,
+    "lines": [
+        [8, 9],
+        [10, 11],
+        [12, 13]
+    ],
+    "idCardImages": {
+        "coordNum": "structureImages/FCCCoordNo.png",
+        "edgeVol": "structureImages/FCCEdgeVol.png",
+        "numAtoms": "structureImages/FCCNumAtoms.png",
+        "AOF": "structureImages/FCCAOF.png"
+    }
+}
