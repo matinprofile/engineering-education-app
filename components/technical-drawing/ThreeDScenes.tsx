@@ -20,7 +20,7 @@ function modelMesh(nodes: MeshNodes, key: string) {
 }
 
 function HighlightModel({ actives, second }: { actives?: DrawingSelection; second?: boolean }) {
-  const { nodes } = useGLTF("/last3d.gltf") as GLTFWithNodes;
+  const { nodes } = useGLTF("/last3d.gltf") as unknown as GLTFWithNodes;
   const surfaces: Array<[string, keyof DrawingSelection | undefined]> = [
     ["mesh_0", "otherSide"],
     ["mesh_1", "bottomRightCut"],
@@ -57,7 +57,7 @@ function HighlightModel({ actives, second }: { actives?: DrawingSelection; secon
 }
 
 function SimpleModel({ assetPath, meshKeys, second }: { assetPath: string; meshKeys: string[]; second: boolean }) {
-  const { nodes } = useGLTF(assetPath) as GLTFWithNodes;
+  const { nodes } = useGLTF(assetPath) as unknown as GLTFWithNodes;
 
   return (
     <group rotation={second ? alternateRotation : defaultRotation}>
