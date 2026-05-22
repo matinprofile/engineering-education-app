@@ -1,11 +1,20 @@
 import type { TopicIconName } from "@/components/ui/TopicIcon";
 
+export type QuickLinkIconType = "manufacturing" | "design" | "youtube";
+
+export type QuickLink = {
+  label: string;
+  href: string;
+  iconType: QuickLinkIconType;
+};
+
 export type Topic = {
   title: string;
   slug: string;
   summary: string;
   highlight: string;
   icon: TopicIconName;
+  quickLinks?: QuickLink[];
 };
 
 export const mainCategories: Topic[] = [
@@ -16,6 +25,11 @@ export const mainCategories: Topic[] = [
     summary:
       "Explore adhesive characterization, joint design, failure analysis, durability testing, and non-destructive testing techniques for high-performance bonded structures.",
     highlight: "Structural Joining",
+    quickLinks: [
+      { label: "Manufacturing", href: "/adhesive-bonding/apps/slj-manufacturing-guide", iconType: "manufacturing" },
+      { label: "Design", href: "/adhesive-bonding/apps/nr613-tutorial", iconType: "design" },
+      { label: "YouTube", href: "https://www.youtube.com/@LucasVideoLessons", iconType: "youtube" },
+    ],
   },
   {
     title: "Joining by Forming",
@@ -24,6 +38,10 @@ export const mainCategories: Topic[] = [
     summary:
       "Plastic deformation-based joining processes including hole hemming, clinching, and self-piercing rivets for multi-material and lightweight structures.",
     highlight: "Forming Processes",
+    quickLinks: [
+      { label: "Manufacturing", href: "/joining-forming", iconType: "manufacturing" },
+      { label: "Design", href: "/joining-forming/clinching", iconType: "design" },
+    ],
   },
   {
     title: "Welding",
@@ -32,6 +50,10 @@ export const mainCategories: Topic[] = [
     summary:
       "Laser welding, friction stir welding, dissimilar material joining, intermetallic formation control, and thermal modelling for critical applications.",
     highlight: "Fusion & Solid-State",
+    quickLinks: [
+      { label: "Manufacturing", href: "/welding", iconType: "manufacturing" },
+      { label: "Design", href: "/welding/apps/mag-welding-sim", iconType: "design" },
+    ],
   },
   {
     title: "Material Science",
@@ -40,6 +62,10 @@ export const mainCategories: Topic[] = [
     summary:
       "Microstructure-property relationships, mechanical characterization, composites, polymers, and material selection strategies for engineering systems.",
     highlight: "Materials & Properties",
+    quickLinks: [
+      { label: "Design", href: "/material-science", iconType: "design" },
+      { label: "YouTube", href: "https://www.youtube.com/watch?v=jvwq5BT4R1g&list=PLZScjc7Bq4IXKqd24t4e85N9PsTDVhS9o", iconType: "youtube" },
+    ],
   },
   {
     title: "Technical Drawing",
@@ -48,10 +74,11 @@ export const mainCategories: Topic[] = [
     summary:
       "ISO drafting standards, geometric dimensioning and tolerancing (GD&T), assembly drawings, and communication of manufacturable engineering intent.",
     highlight: "Engineering Graphics",
+    quickLinks: [
+      { label: "Design", href: "/technical-drawing", iconType: "design" },
+    ],
   },
 ];
-
-export const allCategories: Topic[] = [...mainCategories];
 
 export type TopicPageData = {
   heading: string;

@@ -1,13 +1,12 @@
-import { WavePlateMesh } from "@/components/hero/WavePlateMesh";
+import { LogoMesh } from "@/components/hero/LogoMesh";
 import { Button } from "@/components/ui/Button";
-import { StressNetwork } from "../hero/StressNetwork";
-import { PolygonSphere } from "../hero/PolygonSphere";
+import { FEMTriangularMesh } from "../hero/FEMTriangularMesh";
 
 export function HeroSection() {
   return (
     <section className="relative overflow-hidden border-b border-[color:var(--border)] bg-background">
-      {/* 3D waving mesh plate — z-0 */}
-      <WavePlateMesh />
+      {/* Concept to joint — z-0 */}
+      <FEMTriangularMesh />
       {/* Soft vignette to keep text readable — z-[1] */}
       <div className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(ellipse_at_18%_22%,rgba(140,45,25,0.10),transparent_44%),radial-gradient(ellipse_at_86%_16%,rgba(255,255,255,0.72),transparent_52%)]" />
       {/* Grid texture — z-[2] */}
@@ -15,10 +14,9 @@ export function HeroSection() {
 
       <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 pb-28 pt-10 sm:px-6 md:pb-36 lg:px-8">
         <h1 className="max-w-4xl font-heading text-5xl font-bold leading-[1.1] text-text sm:text-6xl lg:text-7xl">
-          Structural{" "}
-          <span className="text-accent">Joining</span>,{" "}
-          <span className="text-accent">Materials</span>{" "}
-          &amp;Technical <span className="text-accent">Drawing</span>{" "}
+          From <span className="text-accent">Concept</span>{" "}
+          to <span className="text-accent">Joint</span>:{" "}
+          Engineering <span className="text-accent">Education</span>
         </h1>
         <p className="max-w-2xl text-base leading-8 text-muted sm:text-lg">
           Five focused engineering modules built on decades of research partnership with
@@ -40,7 +38,7 @@ export function HeroSection() {
             <a
               key={item.href}
               href={item.href}
-              className="rounded-full border border-[color:var(--border)] bg-white/80 px-4 py-1.5 text-xs font-medium text-muted transition-all duration-300 hover:border-accent/40 hover:bg-accent/8 hover:text-text"
+              className="rounded-full border border-[color:var(--border)] bg-white/80 px-6 py-2.5 text-base font-medium text-muted transition-all duration-300 hover:border-accent/40 hover:bg-accent/8 hover:text-text"
             >
               {item.label}
             </a>
