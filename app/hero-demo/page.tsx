@@ -8,6 +8,7 @@ import { StressNetwork } from "@/components/hero/StressNetwork";
 import { WavePlateMesh } from "@/components/hero/WavePlateMesh";
 import { WeldBead } from "@/components/hero/WeldBead";
 import { LogoMesh } from "@/components/hero/LogoMesh";
+import { Logo3D } from "@/components/hero/Logo3D";
 
 const OPTIONS = [
   {
@@ -51,6 +52,12 @@ const OPTIONS = [
     label: "Logo Mesh",
     description: "3-D logo mesh — fan strokes separate with tension contour from olive to accent red",
     Component: LogoMesh,
+  },
+  {
+    id: "logo3d",
+    label: "Logo 3D",
+    description: "Actual 3-D GLTF model of the Lucas Group logo with edge wireframe and slow rotation",
+    Component: Logo3D,
   },
 ];
 

@@ -1,12 +1,11 @@
-import { LogoMesh } from "@/components/hero/LogoMesh";
+import { Logo3D } from "@/components/hero/Logo3D";
 import { Button } from "@/components/ui/Button";
-import { FEMTriangularMesh } from "../hero/FEMTriangularMesh";
 
 export function HeroSection() {
   return (
     <section className="relative overflow-hidden border-b border-[color:var(--border)] bg-background">
-      {/* Concept to joint — z-0 */}
-      <FEMTriangularMesh />
+      {/* 3-D logo model — z-0 */}
+      <Logo3D />
       {/* Soft vignette to keep text readable — z-[1] */}
       <div className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(ellipse_at_18%_22%,rgba(140,45,25,0.10),transparent_44%),radial-gradient(ellipse_at_86%_16%,rgba(255,255,255,0.72),transparent_52%)]" />
       {/* Grid texture — z-[2] */}
