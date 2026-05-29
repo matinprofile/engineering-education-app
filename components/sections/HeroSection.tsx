@@ -13,9 +13,7 @@ export function HeroSection() {
 
       <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 pb-28 pt-10 sm:px-6 md:pb-36 lg:px-8">
         <h1 className="max-w-4xl font-heading text-5xl font-bold leading-[1.1] text-text sm:text-6xl lg:text-7xl">
-          From <span className="text-accent">Concept</span>{" "}
-          to <span className="text-accent">Joint</span>:{" "}
-          Engineering <span className="text-accent">Education</span>
+          Engineering <span className="text-accent">Education</span> Platform
         </h1>
         <p className="max-w-2xl text-base leading-8 text-muted sm:text-lg">
           Five focused engineering modules built on decades of research partnership with
