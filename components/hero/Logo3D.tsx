@@ -103,7 +103,7 @@ function FEMTube({ curve, color }: {
     <>
       <mesh geometry={meshGeo}>
         <meshStandardMaterial
-          color={color} transparent opacity={0.06}
+          color={color} transparent opacity={0.55}
           depthWrite={false} side={THREE.DoubleSide}
         />
       </mesh>
@@ -170,11 +170,11 @@ function LogoModel() {
   const groupRef = useRef<THREE.Group>(null!);
 
   const arcCurve = useMemo(() => new THREE.CatmullRomCurve3([
-    new THREE.Vector3( 0.32,  0.65, 0),
-    new THREE.Vector3( 0.12,  0.34, 0),
-    new THREE.Vector3(-0.08,  0.17, 0),
-    new THREE.Vector3(-0.28,  0.09, 0),
-    new THREE.Vector3(-0.46,  0.05, 0),
+    new THREE.Vector3( 0.32,  0.38, 0),
+    new THREE.Vector3( 0.12,  0.20, 0),
+    new THREE.Vector3(-0.08,  0.09, 0),
+    new THREE.Vector3(-0.28,  0.02, 0),
+    new THREE.Vector3(-0.46, -0.04, 0),
   ]), []);
 
   useFrame(({ clock, camera }) => {
