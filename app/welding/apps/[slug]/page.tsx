@@ -1,9 +1,21 @@
 import { notFound } from "next/navigation";
 import { AppToolFrame } from "@/components/apps/AppToolFrame";
 import { getWeldingTool, weldingTools } from "@/lib/apps";
+import { LaserQuiz } from "@/components/simulations/LaserQuiz";
+import { FSWQuiz } from "@/components/simulations/FSWQuiz";
+import { RadiographySim } from "@/components/simulations/RadiographySim";
+import { UltrasoundAScan } from "@/components/simulations/UltrasoundAScan";
+import type { ComponentType } from "react";
 
 type WeldingToolPageProps = {
   params: Promise<{ slug: string }>;
+};
+
+const nativeComponents: Partial<Record<string, ComponentType>> = {
+  "laser-quiz": LaserQuiz,
+  "fsw-quiz": FSWQuiz,
+  "radiography-sim": RadiographySim,
+  "ultrasound-a-scan": UltrasoundAScan,
 };
 
 export async function generateStaticParams() {
@@ -16,6 +28,21 @@ export default async function WeldingToolPage({ params }: WeldingToolPageProps) 
 
   if (!tool) {
     notFound();
+  }
+
+  const NativeComponent = nativeComponents[slug];
+
+  if (NativeComponent) {
+    return (
+      <AppToolFrame
+        title={tool.title}
+        description={tool.description}
+        backHref="/welding"
+        backLabel="Back to Welding"
+      >
+        <NativeComponent />
+      </AppToolFrame>
+    );
   }
 
   return (

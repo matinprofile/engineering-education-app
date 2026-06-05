@@ -1,13 +1,15 @@
 import Link from "next/link";
+import { type ReactNode } from "react";
 
 type AppToolFrameProps = {
   title: string;
   description: string;
   backHref: string;
   backLabel: string;
-  iframeSrc: string;
-  iframeTitle: string;
-};
+} & (
+  | { iframeSrc: string; iframeTitle: string; children?: never }
+  | { iframeSrc?: never; iframeTitle?: never; children: ReactNode }
+);
 
 export function AppToolFrame({
   title,
@@ -16,6 +18,7 @@ export function AppToolFrame({
   backLabel,
   iframeSrc,
   iframeTitle,
+  children,
 }: AppToolFrameProps) {
   return (
     <div className="w-full pb-10">
@@ -34,11 +37,15 @@ export function AppToolFrame({
         </div>
       </section>
 
-      <div className="mx-auto w-full max-w-7xl px-4 pt-8 sm:px-6 lg:px-8">
-        <div className="overflow-hidden rounded-2xl border border-[color:var(--border)] bg-white shadow-[0_16px_40px_rgba(48,54,44,0.08)]">
-          <iframe src={iframeSrc} title={iframeTitle} className="h-[82vh] w-full border-0" />
+      {children ? (
+        <div className="w-full">{children}</div>
+      ) : (
+        <div className="mx-auto w-full max-w-7xl px-4 pt-8 sm:px-6 lg:px-8">
+          <div className="overflow-hidden rounded-2xl border border-[color:var(--border)] bg-white shadow-[0_16px_40px_rgba(48,54,44,0.08)]">
+            <iframe src={iframeSrc} title={iframeTitle} className="h-[82vh] w-full border-0" />
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

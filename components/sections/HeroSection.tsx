@@ -5,7 +5,6 @@ export function HeroSection() {
   return (
     <section className="relative overflow-hidden border-b border-[color:var(--border)] bg-background">
       {/* 3-D logo model — z-0 */}
-      <Logo3D />
       {/* Soft vignette to keep text readable — z-[1] */}
       <div className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(ellipse_at_18%_22%,rgba(140,45,25,0.10),transparent_44%),radial-gradient(ellipse_at_86%_16%,rgba(255,255,255,0.72),transparent_52%)]" />
       {/* Grid texture — z-[2] */}
@@ -23,24 +22,6 @@ export function HeroSection() {
           <Button href="/#categories">Explore Modules</Button>
         </div>
 
-        {/* Section quick-links */}
-        <div className="mt-4 flex flex-wrap gap-3">
-          {[
-            { label: "Adhesive Bonding", href: "/adhesive-bonding" },
-            { label: "Joining by Forming", href: "/joining-forming" },
-            { label: "Welding", href: "/welding" },
-            { label: "Material Science", href: "/material-science" },
-            { label: "Technical Drawing", href: "/technical-drawing" },
-          ].map((item) => (
-            <a
-              key={item.href}
-              href={item.href}
-              className="rounded-full border border-[color:var(--border)] bg-white/80 px-6 py-2.5 text-base font-medium text-muted transition-all duration-300 hover:border-accent/40 hover:bg-accent/8 hover:text-text"
-            >
-              {item.label}
-            </a>
-          ))}
-        </div>
       </div>
     </section>
   );

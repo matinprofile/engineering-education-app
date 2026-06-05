@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
+
 const footerLinks = [
   { label: "Adhesive Bonding", href: "/adhesive-bonding" },
   { label: "Joining by Forming", href: "/joining-forming" },
@@ -96,8 +97,14 @@ export function Footer() {
             </div>
           </div>
         </div>
-        <div className="mt-10 border-t border-[color:var(--border)] pt-6 text-center text-xs text-muted">
-          © {new Date().getFullYear()} Engineering Education. All rights reserved.
+        <div className="mt-10 border-t border-[color:var(--border)] pt-6 flex flex-col items-center gap-2 text-center text-xs text-muted sm:flex-row sm:justify-between">
+          <span>© {new Date().getFullYear()} Engineering Education. All rights reserved.</span>
+          <Link
+            href="/terms"
+            className="transition-colors duration-300 hover:text-accent"
+          >
+            Terms &amp; Conditions
+          </Link>
         </div>
       </div>
     </footer>
