@@ -5,6 +5,7 @@ import { LaserQuiz } from "@/components/simulations/LaserQuiz";
 import { FSWQuiz } from "@/components/simulations/FSWQuiz";
 import { RadiographySim } from "@/components/simulations/RadiographySim";
 import { UltrasoundAScan } from "@/components/simulations/UltrasoundAScan";
+import { MAGWeldingSim } from "@/components/simulations/MAGWeldingSim";
 import type { ComponentType } from "react";
 
 type WeldingToolPageProps = {
@@ -12,6 +13,7 @@ type WeldingToolPageProps = {
 };
 
 const nativeComponents: Partial<Record<string, ComponentType>> = {
+  "mag-welding-sim": MAGWeldingSim,
   "laser-quiz": LaserQuiz,
   "fsw-quiz": FSWQuiz,
   "radiography-sim": RadiographySim,
