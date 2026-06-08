@@ -15,7 +15,7 @@ export function HeroSection() {
       <div className="pointer-events-none absolute inset-0 z-[2] bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:80px_80px]" />
 
       <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 pb-28 pt-10 sm:px-6 md:pb-36 lg:px-8">
-        <h1 className="max-w-4xl font-heading text-5xl font-bold leading-[1.1] text-white sm:text-6xl lg:text-7xl">
+        <h1 className="max-w-4xl font-heading text-3xl font-bold leading-[1.1] text-white sm:text-5xl lg:text-7xl">
           Engineering <span className="text-accent">Education</span> Platform
         </h1>
         <p className="max-w-2xl text-base leading-8 text-white/80 sm:text-lg">

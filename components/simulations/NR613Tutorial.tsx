@@ -65,8 +65,9 @@ export function NR613Tutorial() {
 
   const labelClass =
     "block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1 mt-3";
+  // text-base (16px) prevents iOS auto-zoom on input/select focus
   const inputClass =
-    "w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-text bg-white focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/40";
+    "w-full rounded-lg border border-slate-200 px-3 py-2.5 text-base sm:text-sm text-text bg-white focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/40";
   const selectClass = inputClass;
 
   const STEPS = [
@@ -111,8 +112,8 @@ export function NR613Tutorial() {
 
       <div className="mx-auto max-w-5xl p-4 sm:p-6">
         <div className="grid gap-5 lg:grid-cols-[1fr_340px]">
-          {/* Left column — tutorial content */}
-          <div className="space-y-4">
+          {/* Left column — tutorial content (order-last on mobile so calculator appears first) */}
+          <div className="order-last space-y-4 lg:order-first">
             {/* Objective */}
             <section className="rounded-lg border border-[#e6eef7] bg-white p-5 shadow-sm">
               <h3 className="mb-3 flex items-center gap-2 text-base font-bold">
@@ -244,7 +245,7 @@ export function NR613Tutorial() {
               </p>
               <button
                 onClick={generateChecklist}
-                className="rounded-lg bg-[#0b60b0] px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-[#0a52a0]"
+                className="rounded-lg bg-[#0b60b0] px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-[#0a52a0]"
               >
                 Gerar checklist (selecionável)
               </button>
@@ -259,8 +260,8 @@ export function NR613Tutorial() {
             </section>
           </div>
 
-          {/* Right column — calculator */}
-          <aside className="space-y-4">
+          {/* Right column — calculator (order-first on mobile so it shows above tutorial text) */}
+          <aside className="order-first space-y-4 lg:order-last">
             <div className="rounded-lg border border-[#e6eef7] bg-white p-5 shadow-sm">
               <h3 className="mb-1 flex items-center gap-2 text-base font-bold">
                 <Calculator className="h-4 w-4 text-blue-600" />
@@ -343,7 +344,7 @@ export function NR613Tutorial() {
 
               <button
                 onClick={calculate}
-                className="mt-4 w-full rounded-lg bg-[#0b60b0] py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#0a52a0]"
+                className="mt-4 w-full rounded-lg bg-[#0b60b0] py-3 text-sm font-bold text-white transition-colors hover:bg-[#0a52a0]"
               >
                 Calcular SF e Carga característica
               </button>
@@ -370,7 +371,7 @@ export function NR613Tutorial() {
               )}
 
               <details className="mt-4">
-                <summary className="flex cursor-pointer items-center justify-between rounded-md bg-[#f0f6fb] px-3 py-2 text-sm font-semibold">
+                <summary className="flex min-h-[44px] cursor-pointer items-center justify-between rounded-md bg-[#f0f6fb] px-3 py-3 text-sm font-semibold">
                   Como usar
                   <ChevronDown className="h-4 w-4 text-slate-400" />
                 </summary>

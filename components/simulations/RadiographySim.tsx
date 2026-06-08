@@ -213,7 +213,7 @@ export function RadiographySim() {
 
           {/* Film area */}
           <div
-            className="relative flex h-[340px] items-center justify-center overflow-hidden p-8"
+            className="relative flex h-[220px] sm:h-[340px] items-center justify-center overflow-hidden p-8"
             style={{
               backgroundColor: "#0f172a",
               backgroundImage:

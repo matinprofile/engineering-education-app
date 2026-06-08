@@ -333,7 +333,7 @@ export function MAGWeldingSim() {
         <div className="lg:col-span-2 flex flex-col rounded-xl border border-zinc-700 shadow-2xl overflow-hidden">
           <div
             ref={containerRef}
-            className="relative flex-1 min-h-[400px] cursor-none"
+            className="relative flex-1 min-h-[260px] sm:min-h-[400px] cursor-none"
             style={{ background: "#f3f4f6" }}
           >
             {/* Feedback overlay */}

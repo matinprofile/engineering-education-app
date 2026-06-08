@@ -65,7 +65,8 @@ export function Navbar() {
             aria-label={isOpen ? "Close menu" : "Open menu"}
             aria-expanded={isOpen}
             onClick={() => setIsOpen((v) => !v)}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[color:var(--border)] text-muted transition-colors duration-200 hover:border-accent/40 hover:text-accent xl:hidden"
+            style={{ touchAction: "manipulation" }}
+            className="inline-flex h-11 w-11 select-none items-center justify-center rounded-lg border border-[color:var(--border)] text-muted transition-colors duration-200 hover:border-accent/40 hover:text-accent xl:hidden"
           >
             {isOpen ? (
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5" aria-hidden="true">
@@ -80,26 +81,24 @@ export function Navbar() {
         </div>
       </nav>
 
-      {/* Mobile menu */}
-      {isOpen && (
-        <div className="border-t border-[color:var(--border)] bg-white/95 backdrop-blur-xl xl:hidden">
-          <ul className="mx-auto w-full max-w-7xl divide-y divide-[color:var(--border)] px-4 sm:px-6 lg:px-8">
-            {navItems.map((item) => (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  onClick={() => setIsOpen(false)}
-                  className={`block py-4 text-sm font-medium transition-colors duration-200 hover:text-accent ${
-                    pathname === item.href ? "text-accent" : "text-muted"
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      {/* Mobile menu — CSS toggle so Android doesn't miss conditional renders */}
+      <div className={`border-t border-[color:var(--border)] bg-white xl:hidden ${isOpen ? "block" : "hidden"}`}>
+        <ul className="mx-auto w-full max-w-7xl divide-y divide-[color:var(--border)] px-4 sm:px-6 lg:px-8">
+          {navItems.map((item) => (
+            <li key={item.href}>
+              <Link
+                href={item.href}
+                onClick={() => setIsOpen(false)}
+                className={`block py-4 text-sm font-medium transition-colors duration-200 hover:text-accent ${
+                  pathname === item.href ? "text-accent" : "text-muted"
+                }`}
+              >
+                {item.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </div>
     </header>
   );
 }

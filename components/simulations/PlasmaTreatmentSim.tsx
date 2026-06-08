@@ -19,6 +19,7 @@ export function PlasmaTreatmentSim() {
   const [dyneValue, setDyneValue] = useState(BASE_ENERGY);
   const [plasmaActive, setPlasmaActive] = useState(false);
   const [energyLevel, setEnergyLevel] = useState(0);
+  const [hasInteracted, setHasInteracted] = useState(false);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -106,10 +107,10 @@ export function PlasmaTreatmentSim() {
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
 
-    const onMouseMove = (e: MouseEvent) => {
+    const handlePointerMove = (clientX: number, clientY: number) => {
       const rect = container.getBoundingClientRect();
-      mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-      mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      mouse.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((clientY - rect.top) / rect.height) * 2 + 1;
       raycaster.setFromCamera(mouse, camera);
       const hits = raycaster.intersectObject(plate);
       if (hits.length > 0) {
@@ -136,7 +137,6 @@ export function PlasmaTreatmentSim() {
           }
         }
 
-        // Update UI
         if (hits[0].uv) {
           const cx = Math.floor(hits[0].uv.x * GRID);
           const cy = Math.floor(hits[0].uv.y * GRID);
@@ -149,12 +149,29 @@ export function PlasmaTreatmentSim() {
       }
     };
 
-    const onMouseDown = () => { isTreatingRef.current = true; setPlasmaActive(true); };
+    const onMouseMove = (e: MouseEvent) => handlePointerMove(e.clientX, e.clientY);
+    const onMouseDown = () => { isTreatingRef.current = true; setPlasmaActive(true); setHasInteracted(true); };
     const onMouseUp = () => { isTreatingRef.current = false; setPlasmaActive(false); };
+
+    const onTouchStart = (e: TouchEvent) => {
+      e.preventDefault();
+      isTreatingRef.current = true;
+      setPlasmaActive(true);
+      setHasInteracted(true);
+      if (e.touches[0]) handlePointerMove(e.touches[0].clientX, e.touches[0].clientY);
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      e.preventDefault();
+      if (e.touches[0]) handlePointerMove(e.touches[0].clientX, e.touches[0].clientY);
+    };
+    const onTouchEnd = () => { isTreatingRef.current = false; setPlasmaActive(false); };
 
     container.addEventListener("mousemove", onMouseMove);
     container.addEventListener("mousedown", onMouseDown);
     container.addEventListener("mouseup", onMouseUp);
+    container.addEventListener("touchstart", onTouchStart, { passive: false });
+    container.addEventListener("touchmove", onTouchMove, { passive: false });
+    container.addEventListener("touchend", onTouchEnd);
 
     const onResize = () => {
       const w = container.clientWidth;
@@ -210,6 +227,9 @@ export function PlasmaTreatmentSim() {
       container.removeEventListener("mousemove", onMouseMove);
       container.removeEventListener("mousedown", onMouseDown);
       container.removeEventListener("mouseup", onMouseUp);
+      container.removeEventListener("touchstart", onTouchStart);
+      container.removeEventListener("touchmove", onTouchMove);
+      container.removeEventListener("touchend", onTouchEnd);
       renderer.dispose();
       if (container.contains(renderer.domElement)) container.removeChild(renderer.domElement);
     };
@@ -219,10 +239,10 @@ export function PlasmaTreatmentSim() {
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 pt-8 pb-10 sm:px-6 lg:px-8">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" style={{ height: 650 }}>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:h-[650px]">
         {/* 3D Viewport */}
-        <div className="lg:col-span-2 bg-slate-900 rounded-xl border border-slate-700 shadow-2xl overflow-hidden flex flex-col relative group">
-          <div ref={containerRef} className="flex-1 relative" style={{ cursor: "none", background: "#0f172a" }}>
+        <div className="lg:col-span-2 bg-slate-900 rounded-xl border border-slate-700 shadow-2xl overflow-hidden flex flex-col relative group min-h-[300px] sm:min-h-[400px] lg:min-h-0">
+          <div ref={containerRef} className="flex-1 relative" style={{ cursor: "none", background: "#0f172a", touchAction: "none" }}>
             {plasmaActive && (
               <div className="absolute top-5 left-1/2 -translate-x-1/2 z-10 pointer-events-none bg-black/60 backdrop-blur px-5 py-1.5 rounded-full border border-violet-500/30">
                 <span className="font-bold text-violet-400 tracking-wider flex items-center gap-2 text-sm">
@@ -230,13 +250,15 @@ export function PlasmaTreatmentSim() {
                 </span>
               </div>
             )}
-            <div className="absolute inset-0 flex items-center justify-center bg-black/70 pointer-events-none transition-opacity duration-500 group-hover:opacity-0 z-10">
-              <div className="text-center">
-                <Zap className="w-12 h-12 mx-auto mb-2 text-violet-500 animate-bounce" />
-                <h3 className="text-2xl font-bold text-white">Manual Control</h3>
-                <p className="text-slate-300 text-sm">Click and hold to activate the plasma jet.</p>
+            {!hasInteracted && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/70 pointer-events-none z-10">
+                <div className="text-center">
+                  <Zap className="w-12 h-12 mx-auto mb-2 text-violet-500 animate-bounce" />
+                  <h3 className="text-2xl font-bold text-white">Manual Control</h3>
+                  <p className="text-slate-300 text-sm">Press and drag to activate the plasma jet.</p>
+                </div>
               </div>
-            </div>
+            )}
           </div>
           <div className="bg-slate-950 px-5 py-2 flex justify-between text-xs font-mono text-slate-500 border-t border-slate-800">
             <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-slate-700 inline-block" /> Untreated (Hydrophobic)</span>

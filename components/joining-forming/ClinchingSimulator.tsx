@@ -145,7 +145,7 @@ export function ClinchingSimulator() {
               <source src={videoUrl} type="video/mp4" />
             </video>
           ) : (
-            <div className="mt-4 flex h-[280px] items-center justify-center rounded-xl border border-[color:var(--border)] bg-primary/35 px-6 text-center text-sm text-muted">
+            <div className="mt-4 flex h-[200px] sm:h-[280px] items-center justify-center rounded-xl border border-[color:var(--border)] bg-primary/35 px-6 text-center text-sm text-muted">
               Select a hotspot parameter on the clinching diagram to preview a simulation.
             </div>
           )}

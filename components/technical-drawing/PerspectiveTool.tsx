@@ -58,7 +58,7 @@ export function PerspectiveTool() {
           onClickBottomCutTop={handleClickBottomCutTop}
         />
       </div>
-      <div className="min-h-[420px] overflow-hidden rounded-2xl border border-[color:var(--border)] bg-primary/20">
+      <div className="min-h-[260px] sm:min-h-[350px] md:min-h-[420px] overflow-hidden rounded-2xl border border-[color:var(--border)] bg-primary/20">
         <InteractiveThreeDView actives={actives} />
       </div>
     </div>

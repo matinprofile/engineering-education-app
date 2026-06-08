@@ -146,6 +146,7 @@ export function SurfacePrepSim() {
   const [radius, setRadius] = useState(6);
   const [length, setLength] = useState(150);
   const [results, setResults] = useState({ type: "Single V", areaMm2: 0, volumeCm3: 0, massKg: 0 });
+  const [hasInteracted, setHasInteracted] = useState(false);
 
   const updateGeometry = useCallback(() => {
     const scene = sceneRef.current;
@@ -262,18 +263,23 @@ export function SurfacePrepSim() {
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 pt-8 pb-10 sm:px-6 lg:px-8">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[600px]">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:h-[600px]">
         {/* 3D Viewport */}
-        <div className="lg:col-span-2 bg-black rounded-xl border border-slate-700 shadow-2xl overflow-hidden flex flex-col relative group">
-          <div ref={containerRef} className="flex-1 relative cursor-grab" style={{ background: "#020617" }}>
+        <div className="lg:col-span-2 bg-black rounded-xl border border-slate-700 shadow-2xl overflow-hidden flex flex-col relative group min-h-[300px] sm:min-h-[400px] lg:min-h-0">
+          <div
+            ref={containerRef}
+            className="flex-1 relative cursor-grab"
+            style={{ background: "#020617", touchAction: "none" }}
+            onPointerDown={() => setHasInteracted(true)}
+          >
             <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 pointer-events-none bg-black/60 backdrop-blur px-4 py-1.5 rounded-full border border-white/20">
               <span className="font-bold text-sm tracking-widest uppercase text-amber-400">{JOINT_CONFIG[jointType].label}</span>
             </div>
-            <div className="absolute inset-0 flex items-center justify-center bg-black/70 pointer-events-none transition-opacity duration-500 group-hover:opacity-0 z-10">
+            <div className={`absolute inset-0 flex items-center justify-center bg-black/70 pointer-events-none transition-opacity duration-500 z-10 ${hasInteracted ? "opacity-0" : "group-hover:opacity-0"}`}>
               <div className="text-center px-4">
                 <Flame className="w-12 h-12 mx-auto mb-2 text-orange-500 animate-bounce" />
-                <h3 className="text-2xl font-bold text-white">Click & Drag to Rotate</h3>
-                <p className="text-slate-300 text-sm">Scroll to zoom.</p>
+                <h3 className="text-2xl font-bold text-white">Drag to Rotate</h3>
+                <p className="text-slate-300 text-sm">Pinch or scroll to zoom.</p>
               </div>
             </div>
           </div>
