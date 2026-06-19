@@ -42,6 +42,12 @@ export const adhesiveBondingTools: AppTool[] = [
     description: "Video-based process viewer for single lap joint manufacturing steps.",
     fileName: "slj.html",
   },
+  {
+    slug: "adhesive-bonding-quiz",
+    title: "Module Quiz — Adhesive Bonding",
+    description: "Test your knowledge of surface preparation, plasma treatment, joint design, failure modes, and NR613.",
+    fileName: "",
+  },
 ];
 
 export const weldingTools: AppTool[] = [
@@ -86,6 +92,12 @@ export const weldingTools: AppTool[] = [
     title: "FSW Quiz",
     description: "Knowledge-check quiz for friction stir welding terminology and process basics.",
     fileName: "fsw_game.html",
+  },
+  {
+    slug: "welding-module-quiz",
+    title: "Module Quiz — Welding",
+    description: "Comprehensive assessment covering MAG welding, joint preparation, FSW, NDT inspection, and laser welding.",
+    fileName: "",
   },
 ];
 

@@ -9,6 +9,7 @@ export default function InsolubilityPage() {
       backLabel="Back to Phase Diagram"
       iframeSrc="/src/diagramaFases/fases.html"
       iframeTitle="Phase Diagram Insolubility"
+      currentHref="/material-science/phase-diagram/insolubility"
     />
   );
 }

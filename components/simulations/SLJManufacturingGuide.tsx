@@ -14,13 +14,13 @@ const STEPS: Step[] = [
     title: "Step 1: Substrate Surface Preparation",
     description:
       "Sanding prepares metal for bonding by using abrasives to remove surface contaminants like rust and loose oxides. It roughens the substrate, creating a better mechanical profile for the adhesive to key into, which significantly enhances bond strength. The process must always be preceded by degreasing and followed by a final cleaning to remove all sanding dust before the adhesive is applied.",
-    videoUrl: null,
+    videoUrl: "/apps/sanding.mp4",
   },
   {
     title: "Step 2: Adhesive Mixing",
     description:
       "Mixing two-component adhesives is necessary because the separate resin and hardener are unreactive when stored. Combining them at the correct ratio initiates a crucial chemical reaction called polymerization. This reaction causes the materials to cross-link and cure, transforming the liquid into a durable, solid, high-strength adhesive. Without proper mixing, the epoxy won't cure and will fail to form a strong bond.",
-    videoUrl: null,
+    videoUrl: "/apps/mixing.mp4",
   },
   {
     title: "Step 3: Joint Assembly and Adhesive Application",

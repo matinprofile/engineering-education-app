@@ -49,15 +49,15 @@ export function NR613Tutorial() {
 
   function generateChecklist() {
     const txt = [
-      "CHECKLIST - Projeto junta adesiva (NR613)",
-      "1) Descrição do assembly: função, localização, materiais, cargas.",
-      "2) Definir Safety Class (SC) e maturidade / Qualification level (Q).",
-      "3) Escolher método de justificação (A / B / C) e justificar.",
-      "4) Especificação de bonding: espessura adesiva, preparação de superfície, primers.",
-      "5) MTI Bonding Plan: armazenamento, pot-life, temperatura/humidade, rastreabilidade.",
-      "6) Plano de ensaios: caracterização do adesivo (Tg, E, resistência), testes de junta representativos, envelhecimento/fadiga se aplicável.",
-      "7) Procedimentos de fabricação: instruções, NDT, inspeção final.",
-      "8) Registros: lotes, condições ambientais, ensaios e relatórios para submissão.",
+      "CHECKLIST - Bonded joint design (NR613)",
+      "1) Assembly description: function, location, materials, loads.",
+      "2) Define Safety Class (SC) and maturity / Qualification level (Q).",
+      "3) Select justification method (A / B / C) and provide rationale.",
+      "4) Bonding specification: adhesive thickness, surface preparation, primers.",
+      "5) MTI Bonding Plan: storage, pot-life, temperature/humidity, traceability.",
+      "6) Test plan: adhesive characterization (Tg, E, strength), representative joint tests, aging/fatigue if applicable.",
+      "7) Manufacturing procedures: instructions, NDT, final inspection.",
+      "8) Records: batches, environmental conditions, tests, and reports for submission.",
     ].join("\n");
     setChecklistText(txt);
     setShowChecklist(true);
@@ -72,28 +72,28 @@ export function NR613Tutorial() {
 
   const STEPS = [
     {
-      title: "1. Definir escopo & classe de segurança (SC)",
-      body: "Descreva função, localização a bordo, cargas e condições ambientais. (NR613 - metodologia e especificação).",
+      title: "1. Define scope & safety class (SC)",
+      body: "Describe function, onboard location, loads, and environmental conditions. (NR613 - methodology and specification).",
     },
     {
-      title: "2. Determinar maturidade & nível de qualificação Q",
-      body: "Escolha Q1–Q5 com base na maturidade do projeto e segurança. (NR613 - Tab. requisitos).",
+      title: "2. Determine maturity & qualification level Q",
+      body: "Choose Q1–Q5 based on design maturity and safety. (NR613 - requirements table).",
     },
     {
-      title: "3. Preparar Bonding Specification & Design File",
-      body: "Desenhos, espessura(s) previstas, processos, preparação de superfície, e critérios de aceitação.",
+      title: "3. Prepare Bonding Specification & Design File",
+      body: "Drawings, planned adhesive thickness(es), processes, surface preparation, and acceptance criteria.",
     },
     {
-      title: "4. Selecionar método de justificação",
-      body: "Method A (testes), B (cálculos), C (cálculos + testes). Cada um tem requisitos e fatores específicos.",
+      title: "4. Select justification method",
+      body: "Method A (tests), B (analysis), C (analysis + tests). Each has specific requirements and factors.",
     },
     {
-      title: "5. Planejar ensaios e MTI Bonding Plan",
-      body: "Montar plano de fabricação, ensaios (caracterização/idade/fadiga conforme Q) e rastreabilidade.",
+      title: "5. Plan testing and MTI Bonding Plan",
+      body: "Assemble manufacturing plan, tests (characterization/aging/fatigue per Q), and traceability.",
     },
     {
-      title: "6. Produção, inspeção NDT e validação",
-      body: "Fazer controles ambientais, final checks, NDT, e documentar para submissão.",
+      title: "6. Production, NDT inspection and validation",
+      body: "Perform environmental controls, final checks, NDT, and document for submission.",
     },
   ];
 
@@ -105,9 +105,9 @@ export function NR613Tutorial() {
         style={{ background: "linear-gradient(90deg,#0b3b6f,#1b9be0)" }}
       >
         <h2 className="text-lg font-bold">
-          Tutorial interativo: projeto de junta adesiva conforme NR613
+          Interactive tutorial: bonded joint design according to NR613
         </h2>
-        <p className="mt-1 text-sm text-blue-100">Standalone · client-side · Português (BR)</p>
+        <p className="mt-1 text-sm text-blue-100">Standalone · client-side · English</p>
       </header>
 
       <div className="mx-auto max-w-5xl p-4 sm:p-6">
@@ -118,19 +118,13 @@ export function NR613Tutorial() {
             <section className="rounded-lg border border-[#e6eef7] bg-white p-5 shadow-sm">
               <h3 className="mb-3 flex items-center gap-2 text-base font-bold">
                 <BookOpen className="h-4 w-4 text-blue-600" />
-                Objetivo
+                Objective
               </h3>
               <p className="text-sm leading-relaxed">
-                Este tutorial guia passo-a-passo o projeto de uma{" "}
-                <strong>junta adesiva estrutural</strong> de acordo com a{" "}
-                <strong>NR613 (Bonded Assemblies)</strong>. Inclui: definição do escopo, seleção do
-                método de justificação (A/B/C), verificação de fatores de segurança, requisitos de
-                ensaios, controle de fabricação (MTI Bonding Plan) e preparação de superfície.
+                This tutorial guides a step-by-step design of a <strong>structural bonded joint</strong> in accordance with <strong>NR613 (Bonded Assemblies)</strong>. It includes scope definition, selection of justification method (A/B/C), safety factor checks, test requirements, manufacturing control (MTI Bonding Plan), and surface preparation.
               </p>
               <p className="mt-2 text-xs text-blue-700">
-                Os trechos desta orientação seguem a NR613 fornecida. Use este tutorial como
-                checklist interativo; todas as decisões finais e submissões devem ser feitas
-                conforme os requisitos da Sociedade de Classificação aplicável.
+                The guidance excerpts follow the provided NR613. Use this tutorial as an interactive checklist; final decisions and submissions must comply with the applicable Classification Society requirements.
               </p>
             </section>
 
@@ -156,15 +150,15 @@ export function NR613Tutorial() {
             {/* Design recommendations */}
             <section className="rounded-lg border border-[#e6eef7] bg-white p-5 shadow-sm">
               <h3 className="mb-3 text-base font-bold">
-                Design da junta — recomendações práticas
+                Joint design — practical recommendations
               </h3>
-              <p className="mb-3 text-xs text-[#315d88]">Pontos de atenção segundo NR613:</p>
+              <p className="mb-3 text-xs text-[#315d88]">NR613 key design considerations:</p>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 {[
-                  "Priorizar carregamento em cisalhamento no plano",
-                  "Evitar peel / modo I local (desenhar transições suaves)",
-                  "Definir faixa de espessura do adesivo e tolerâncias",
-                  "Considerar coeficiente de dilatação térmica",
+                  "Favor in-plane shear loading",
+                  "Avoid local peel / mode I (use smooth transitions)",
+                  "Define adhesive thickness range and tolerances",
+                  "Consider thermal expansion coefficient",
                 ].map((chip) => (
                   <div
                     key={chip}
@@ -174,38 +168,37 @@ export function NR613Tutorial() {
                   </div>
                 ))}
                 <div className="col-span-1 rounded-md border border-[#cfe4ff] bg-[#eaf5ff] px-3 py-2 text-xs sm:col-span-2">
-                  Juntas frágeis → preferir validação por ensaios (Method C / A).
+                  Brittle joints → prefer validation by tests (Method C / A).
                 </div>
               </div>
             </section>
 
             {/* Surface prep */}
             <section className="rounded-lg border border-[#e6eef7] bg-white p-5 shadow-sm">
-              <h3 className="mb-3 text-base font-bold">Preparação de superfície (resumo)</h3>
+              <h3 className="mb-3 text-base font-bold">Surface preparation (summary)</h3>
               <ol className="list-decimal space-y-1 pl-5 text-sm">
-                <li>Limpeza e desengraxe;</li>
-                <li>Abrasão adequada ao substrato (areia, lixa, bristle, etc);</li>
-                <li>Limpeza final; aplicar primer se indicado pelo fabricante;</li>
-                <li>Registrar lote/batch de produtos usados e resultados de ensaios de aderência.</li>
+                <li>Cleaning and degreasing;</li>
+                <li>Substrate-appropriate abrasion (sand, grit, bristle, etc.);</li>
+                <li>Final cleaning; apply primer if recommended by the manufacturer;</li>
+                <li>Record batch numbers of materials used and adhesion test results.</li>
               </ol>
               <p className="mt-2 text-xs text-[#315d88]">
-                Métodos de verificação citados na NR613: medição de molhabilidade (NF EN 828),
-                wetting tension (ASTM D2578), e teste pull-off.
+                Verification methods cited in NR613: wettability measurement (NF EN 828), wetting tension (ASTM D2578), and pull-off testing.
               </p>
             </section>
 
             {/* Tests */}
             <section className="rounded-lg border border-[#e6eef7] bg-white p-5 shadow-sm">
-              <h3 className="mb-3 text-base font-bold">Ensaios e caracterização</h3>
+              <h3 className="mb-3 text-base font-bold">Testing and characterization</h3>
               <p className="mb-2 text-xs text-[#315d88]">
-                Seleção típica de ensaios (conforme Q e método):
+                Typical test selection (per Q and method):
               </p>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 {[
-                  "Caracterização adesivo: Tg, módulo, resistência tração/cisalhamento (ISO/ASTM listados)",
-                  "Ensaios de junta: SLJ, TAST, ENF, DCB, peel, conforme objetivo",
-                  "Envelhecimento e fadiga (Q4/Q5 ou conforme exigência)",
-                  "Ensaios representativos em escala média/grande para Method A/C",
+                  "Adhesive characterization: Tg, modulus, tensile/shear strength (ISO/ASTM listed)",
+                  "Joint tests: SLJ, TAST, ENF, DCB, peel, per objective",
+                  "Aging and fatigue (Q4/Q5 or as required)",
+                  "Representative medium/large scale tests for Method A/C",
                 ].map((chip) => (
                   <div
                     key={chip}
@@ -219,18 +212,16 @@ export function NR613Tutorial() {
 
             {/* MTI Bonding Plan */}
             <section className="rounded-lg border border-[#e6eef7] bg-white p-5 shadow-sm">
-              <h3 className="mb-3 text-base font-bold">MTI Bonding Plan — pontos essenciais</h3>
+              <h3 className="mb-3 text-base font-bold">MTI Bonding Plan — key points</h3>
               <p className="text-sm leading-relaxed">
-                O MTI Bonding Plan deve cobrir desde compra e armazenamento dos adesivos até
-                aplicação, cura, NDT e rastreabilidade (lotes, temperatura, humidade, tempo entre
-                operações).
+                The MTI Bonding Plan should cover adhesive purchase and storage through application, cure, NDT and traceability (batches, temperature, humidity, time between operations).
               </p>
               <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
-                <li>Lista de materiais e ferramentas;</li>
-                <li>Controle de armazenamento e vida útil;</li>
-                <li>Procedimentos de mistura/dosagem e pot-life;</li>
-                <li>Controles ambientais na aplicação;</li>
-                <li>Critérios de aceitação e planilha de registo.</li>
+                <li>List of materials and tools;</li>
+                <li>Storage control and shelf life;</li>
+                <li>Mixing/dosing procedures and pot-life;</li>
+                <li>Environmental controls during application;</li>
+                <li>Acceptance criteria and record sheet.</li>
               </ul>
             </section>
 
@@ -238,16 +229,16 @@ export function NR613Tutorial() {
             <section className="rounded-lg border border-[#e6eef7] bg-white p-5 shadow-sm">
               <h3 className="mb-2 flex items-center gap-2 text-base font-bold">
                 <ClipboardCheck className="h-4 w-4 text-blue-600" />
-                Exportar / copiar checklist
+                Export / copy checklist
               </h3>
               <p className="mb-3 text-xs text-[#315d88]">
-                Você pode copiar o checklist abaixo:
+                You can copy the checklist below:
               </p>
               <button
                 onClick={generateChecklist}
                 className="rounded-lg bg-[#0b60b0] px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-[#0a52a0]"
               >
-                Gerar checklist (selecionável)
+                Generate checklist (selectable)
               </button>
               {showChecklist && (
                 <textarea
@@ -265,13 +256,13 @@ export function NR613Tutorial() {
             <div className="rounded-lg border border-[#e6eef7] bg-white p-5 shadow-sm">
               <h3 className="mb-1 flex items-center gap-2 text-base font-bold">
                 <Calculator className="h-4 w-4 text-blue-600" />
-                Calculadora de Fator de Segurança
+                Safety Factor Calculator
               </h3>
               <p className="text-xs text-[#315d88]">
-                Fórmula NR613: SF ≥ α · Ct · Cv · CF · Cθ · Cb
+                NR613 formula: SF ≥ α · Ct · Cv · CF · Cθ · Cb
               </p>
 
-              <label className={labelClass}>Método de justificação</label>
+              <label className={labelClass}>Justification method</label>
               <select
                 className={selectClass}
                 value={calc.method}
@@ -282,14 +273,14 @@ export function NR613Tutorial() {
                 <option value="C">Method C — cálculos + testes (α = 1.5)</option>
               </select>
 
-              <label className={labelClass}>Ct (critério de falha)</label>
+              <label className={labelClass}>Ct (failure criterion)</label>
               <select
                 className={selectClass}
                 value={calc.ct}
                 onChange={(e) => set("ct", parseFloat(e.target.value))}
               >
-                <option value="1.2">1.2 (falha por ensaio - Method A/C)</option>
-                <option value="1.5">1.5 (uso de datasheet - Method B)</option>
+                <option value="1.2">1.2 (test failure - Method A/C)</option>
+                <option value="1.5">1.5 (datasheet use - Method B)</option>
               </select>
 
               <label className={labelClass}>Cv (ageing)</label>
@@ -298,40 +289,40 @@ export function NR613Tutorial() {
                 value={calc.cv}
                 onChange={(e) => set("cv", parseFloat(e.target.value))}
               >
-                <option value="1.0">1.0 (não protegido / justificar)</option>
-                <option value="1.2">1.2 (protegido — recomendação NR613)</option>
+                <option value="1.0">1.0 (unprotected / justify)</option>
+                <option value="1.2">1.2 (protected — NR613 recommendation)</option>
               </select>
 
-              <label className={labelClass}>CF (processo)</label>
+              <label className={labelClass}>CF (process)</label>
               <select
                 className={selectClass}
                 value={calc.cf}
                 onChange={(e) => set("cf", parseFloat(e.target.value))}
               >
                 <option value="1.25">1.25 (manual)</option>
-                <option value="1.15">1.15 (vácuo/infusão/injection)</option>
+                <option value="1.15">1.15 (vacuum/infusion/injection)</option>
               </select>
 
-              <label className={labelClass}>Cθ (temperatura)</label>
+              <label className={labelClass}>Cθ (temperature)</label>
               <select
                 className={selectClass}
                 value={calc.ctheta}
                 onChange={(e) => set("ctheta", parseFloat(e.target.value))}
               >
                 <option value="1.0">
-                  1.0 (testado nas temperaturas de serviço)
+                  1.0 (tested at service temperatures)
                 </option>
-                <option value="1.2">1.2 (dados deduzidos do datasheet)</option>
+                <option value="1.2">1.2 (data inferred from datasheet)</option>
               </select>
 
-              <label className={labelClass}>Cb (tipo de falha)</label>
+              <label className={labelClass}>Cb (failure mode)</label>
               <select
                 className={selectClass}
                 value={calc.cb}
                 onChange={(e) => set("cb", parseFloat(e.target.value))}
               >
-                <option value="1.0">1.0 (ductil)</option>
-                <option value="1.15">1.15 (brittle ou indefinido)</option>
+                <option value="1.0">1.0 (ductile)</option>
+                <option value="1.15">1.15 (brittle or undefined)</option>
               </select>
 
               <label className={labelClass}>Carga máxima de projeto (N)</label>
@@ -346,7 +337,7 @@ export function NR613Tutorial() {
                 onClick={calculate}
                 className="mt-4 w-full rounded-lg bg-[#0b60b0] py-3 text-sm font-bold text-white transition-colors hover:bg-[#0a52a0]"
               >
-                Calcular SF e Carga característica
+                Calculate SF and characteristic load
               </button>
 
               {result && (
@@ -364,21 +355,18 @@ export function NR613Tutorial() {
                     </span>
                   </p>
                   <p className="mt-2 text-xs text-[#315d88]">
-                    Interprete F&#x2090;&#x1D0E;&#x1D21; conforme o método selecionado (ex.: para
-                    Method A realize ensaios; para Method C ajuste com correlação experimental).
+                    Interpret Freq according to the selected method (e.g., for Method A perform tests; for Method C adjust with experimental correlation).
                   </p>
                 </div>
               )}
 
               <details className="mt-4">
                 <summary className="flex min-h-[44px] cursor-pointer items-center justify-between rounded-md bg-[#f0f6fb] px-3 py-3 text-sm font-semibold">
-                  Como usar
+                  How to use
                   <ChevronDown className="h-4 w-4 text-slate-400" />
                 </summary>
                 <p className="mt-2 text-xs text-[#375d81]">
-                  Escolha o método e fatores, insira Ldesign (N). O script calcula SF mínimo e a
-                  carga característica mínima (Freq) que a junta deve demonstrar (por teste ou
-                  predição) para satisfazer SF.
+                  Choose the method and factors, enter Ldesign (N). The script calculates minimum SF and the minimum characteristic load (Freq) that the joint must demonstrate (by test or prediction) to satisfy SF.
                 </p>
               </details>
             </div>
@@ -386,24 +374,22 @@ export function NR613Tutorial() {
             {/* Pre-submission checklist */}
             <div className="rounded-lg border border-[#e6eef7] bg-white p-5 shadow-sm">
               <h3 className="mb-2 text-sm font-bold">
-                Checklist rápida antes de enviar à Sociedade
+                Quick checklist before submission to the Society
               </h3>
               <ul className="space-y-1.5 text-xs text-[#375d81]">
-                <li>✓ Bonding specification completa (descrição, função, localização).</li>
-                <li>✓ Design file com desenhos e espessura(s).</li>
-                <li>✓ MTI Bonding Plan com rastreabilidade e critérios.</li>
-                <li>✓ Plano de ensaios / caracterização do adesivo.</li>
-                <li>✓ Registros de preparação de superfície e NDT.</li>
+                <li>✓ Complete bonding specification (description, function, location).</li>
+                <li>✓ Design file with drawings and thickness(es).</li>
+                <li>✓ MTI Bonding Plan with traceability and criteria.</li>
+                <li>✓ Test plan / adhesive characterization.</li>
+                <li>✓ Records of surface preparation and NDT.</li>
               </ul>
             </div>
 
             {/* Advanced note */}
             <div className="rounded-lg border border-[#e6eef7] bg-white p-5 shadow-sm">
-              <h3 className="mb-2 text-sm font-bold">Notas / Avançado</h3>
+              <h3 className="mb-2 text-sm font-bold">Notes / Advanced</h3>
               <p className="text-xs text-[#375d81]">
-                Para Method C: você precisa de campanha experimental (mínimo 4 configurações, ≥5
-                espécimes cada) e análise de correlação b, COV e βC conforme NR613
-                (EN1990-based). Veja App 4 e §2.4.
+                For Method C: you need an experimental campaign (minimum 4 configurations, ≥5 specimens each) and correlation analysis b, COV and βC per NR613 (EN1990-based). See App 4 and §2.4.
               </p>
             </div>
           </aside>
@@ -411,24 +397,24 @@ export function NR613Tutorial() {
 
         {/* References */}
         <section className="mt-5 rounded-lg border border-[#e6eef7] bg-white p-5 shadow-sm">
-          <h3 className="mb-3 text-base font-bold">Referências (trechos NR613 usados)</h3>
+          <h3 className="mb-3 text-base font-bold">References (NR613 excerpts used)</h3>
           <ul className="space-y-1.5 text-xs text-[#3a5f86]">
-            <li>Metodologia e etapas de avaliação: NR613 Sec 2.</li>
-            <li>MTI Bonding Plan — conteúdo e exigências: NR613 Sec 5 e Appendix 6.</li>
+            <li>Methodology and evaluation stages: NR613 Sec 2.</li>
+            <li>MTI Bonding Plan — content and requirements: NR613 Sec 5 and Appendix 6.</li>
             <li>
-              Preparação de superfície — limpeza, abrasão, testes de molhabilidade: NR613 Sec 5
-              (4.3.2) e App 7.
+              Surface preparation — cleaning, abrasion, wettability tests: NR613 Sec 5
+              (4.3.2) and App 7.
             </li>
-            <li>Métodos de justificação: Method A, B, C e requisitos (2.2–2.4).</li>
+            <li>Justification methods: Method A, B, C and requirements (2.2–2.4).</li>
             <li>
-              Fatores de segurança e fórmula (SF ≥ α·Ct·Cv·CF·Cθ·Cb): NR613 Sec 3.
+              Safety factors and formula (SF ≥ α·Ct·Cv·CF·Cθ·Cb): NR613 Sec 3.
             </li>
             <li>
-              Ensaios e caracterização (Tg, módulos, DCB/ENF/TAST/SLJ...): NR613 Sec 3 e App 4.
+              Testing and characterization (Tg, moduli, DCB/ENF/TAST/SLJ...): NR613 Sec 3 and App 4.
             </li>
           </ul>
           <p className="mt-3 text-xs italic text-[#315d88]">
-            Use estas referências no envio de documentação à Sociedade de Classificação.
+            Use these references when submitting documentation to the Classification Society.
           </p>
         </section>
       </div>

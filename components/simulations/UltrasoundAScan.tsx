@@ -24,8 +24,8 @@ const DEFECTS: Defect[] = [
     spread: 12,
     peakWidth: 0.06,
     color: "#f87171",
-    label: "POS: 30% (Falta de Fusão)",
-    desc: "Amplitude média-alta. Base do eco moderadamente larga.",
+    label: "POS: 30% (Lack of Fusion)",
+    desc: "Medium-high amplitude. Moderately wide echo base.",
   },
   {
     id: "crack",
@@ -35,8 +35,8 @@ const DEFECTS: Defect[] = [
     spread: 8,
     peakWidth: 0.03,
     color: "#fca5a5",
-    label: "POS: 50% (Fissura/Crack)",
-    desc: "Amplitude crítica (Muito Alta). Eco muito fino e aguçado.",
+    label: "POS: 50% (Crack)",
+    desc: "Critical amplitude (Very High). Very sharp and fine echo.",
   },
   {
     id: "porosity",
@@ -46,8 +46,8 @@ const DEFECTS: Defect[] = [
     spread: 20,
     peakWidth: 0.1,
     color: "#fde047",
-    label: "POS: 80% (Porosidade)",
-    desc: "Amplitude baixa. Eco 'gordo' e irregular (ruído volumétrico).",
+    label: "POS: 80% (Porosity)",
+    desc: "Low amplitude. Thick and irregular echo (volumetric noise).",
   },
 ];
 
@@ -204,11 +204,11 @@ export function UltrasoundAScan() {
         <div className="mx-auto max-w-7xl">
           <h2 className="flex items-center gap-3 text-2xl font-extrabold tracking-tight text-emerald-400 md:text-3xl">
             <Scan className="h-8 w-8 shrink-0" />
-            Simulador de análise por ultrassons (A-Scan)
+            Ultrasound Analysis Simulator (A-Scan)
           </h2>
-          <p className="mt-1 text-slate-400">Demonstração interativa multi-defeito</p>
+          <p className="mt-1 text-slate-400">Multi-defect interactive demonstration</p>
           <p className="mt-0.5 text-sm text-slate-500">
-            Mova a sonda sobre a junta soldada para visualizar a resposta.
+            Move the probe over the welded joint to visualize the response.
           </p>
         </div>
       </header>
@@ -261,7 +261,7 @@ export function UltrasoundAScan() {
             {showHint && (
               <div className="pointer-events-none absolute bottom-6 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-full bg-black/70 px-6 py-3 text-sm text-white backdrop-blur-sm">
                 <MousePointer2 className="h-4 w-4 animate-bounce" />
-                <span className="font-medium">Mova o cursor sobre a junta para inspecionar</span>
+                <span className="font-medium">Move the cursor over the joint to inspect</span>
               </div>
             )}
           </div>
@@ -270,7 +270,7 @@ export function UltrasoundAScan() {
           <div className="flex w-full flex-col border-l border-slate-700 bg-slate-900 p-6 lg:w-1/2">
             <div className="mb-4 border-b border-slate-800 pb-2">
               <h3 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-slate-400">
-                <Activity className="h-4 w-4" /> Sensor ultrassónico
+                <Activity className="h-4 w-4" /> Ultrasonic Sensor
               </h3>
             </div>
 
@@ -291,8 +291,8 @@ export function UltrasoundAScan() {
                   </div>
                 </div>
                 <div className="mt-2 flex justify-between px-1 font-mono text-xs text-slate-400">
-                  <span>Superfície</span>
-                  <span>Fundo (BW)</span>
+                  <span>Surface</span>
+                  <span>Back Wall (BW)</span>
                 </div>
               </div>
 
@@ -301,7 +301,7 @@ export function UltrasoundAScan() {
                 <div className="h-full rounded-lg border border-slate-700 bg-slate-800/50 p-4">
                   <h4 className="mb-4 flex items-center gap-2 text-sm font-semibold text-emerald-400">
                     <List className="h-4 w-4" />
-                    Legenda de Sinais
+                    Signal Legend
                   </h4>
                   <div className="space-y-4">
                     {DEFECTS.map((d) => (
@@ -319,7 +319,7 @@ export function UltrasoundAScan() {
                   </div>
                   <div className="mt-4 border-t border-slate-700 pt-4">
                     <p className="text-[10px] italic text-slate-500">
-                      * Sinais de defeito causam queda do eco de fundo (Atenuação).
+                      * Defect signals cause back-wall echo loss (Attenuation).
                     </p>
                   </div>
                 </div>

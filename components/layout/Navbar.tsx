@@ -53,6 +53,13 @@ export function Navbar() {
 
         <div className="flex items-center gap-3">
           <Link
+            href="/progress"
+            className="hidden items-center gap-1.5 text-sm text-muted transition-colors duration-300 hover:text-accent xl:flex"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            My Progress
+          </Link>
+          <Link
             href="/#categories"
             className="rounded-xl border border-accent/30 bg-accent/8 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-accent transition-all duration-300 hover:bg-accent/14"
           >
@@ -97,6 +104,18 @@ export function Navbar() {
               </Link>
             </li>
           ))}
+          <li>
+            <Link
+              href="/progress"
+              onClick={() => setIsOpen(false)}
+              className={`flex items-center gap-2 py-4 text-sm font-medium transition-colors duration-200 hover:text-accent ${
+                pathname === "/progress" ? "text-accent" : "text-muted"
+              }`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+              My Progress
+            </Link>
+          </li>
         </ul>
       </div>
     </header>

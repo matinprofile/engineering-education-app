@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { SectionWrapper } from "@/components/ui/SectionWrapper";
 import { TopicIcon } from "@/components/ui/TopicIcon";
+import { ModuleLearningPath } from "@/components/path/ModuleLearningPath";
+import { learningPaths } from "@/lib/paths";
 
 const interactiveModules = [
   {
@@ -60,6 +62,8 @@ export default function MaterialSciencePage() {
           </p>
         </div>
       </section>
+
+      <ModuleLearningPath path={learningPaths["material-science"]} />
 
       <SectionWrapper
         title="Interactive Modules"

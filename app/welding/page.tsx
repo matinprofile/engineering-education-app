@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { TopicIcon } from "@/components/ui/TopicIcon";
 import { weldingTools } from "@/lib/apps";
+import { ModuleLearningPath } from "@/components/path/ModuleLearningPath";
+import { learningPaths } from "@/lib/paths";
 
 const CATEGORIES = [
   {
@@ -107,8 +109,10 @@ export default function WeldingPage() {
         </div>
       </section>
 
+      <ModuleLearningPath path={learningPaths["welding"]} />
+
       {/* Category sections */}
-      <div className="mx-auto w-full max-w-7xl space-y-16 px-4 pt-16 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-7xl space-y-16 px-4 pt-0 sm:px-6 lg:px-8">
         {CATEGORIES.map((cat, i) => {
           const tools = cat.slugs.map((s) => toolMap[s]).filter(Boolean);
           return (

@@ -166,18 +166,11 @@ function FloatingPatches() {
 }
 
 // ── Scene ─────────────────────────────────────────────────────────────────────
-function LogoModel() {
+function LogoModel({ animated = true }: { animated?: boolean }) {
   const groupRef = useRef<THREE.Group>(null!);
 
-  const arcCurve = useMemo(() => new THREE.CatmullRomCurve3([
-    new THREE.Vector3( 0.32,  0.38, 0),
-    new THREE.Vector3( 0.12,  0.20, 0),
-    new THREE.Vector3(-0.08,  0.09, 0),
-    new THREE.Vector3(-0.28,  0.02, 0),
-    new THREE.Vector3(-0.46, -0.04, 0),
-  ]), []);
-
   useFrame(({ clock, camera }) => {
+    if (!animated) return;
     const t = clock.elapsedTime;
     groupRef.current.rotation.y = t * 0.18;
     groupRef.current.rotation.x = -0.12 + Math.sin(t * 0.14) * 0.06;
@@ -205,8 +198,10 @@ function LogoModel() {
         );
       })}
 
-      {/* ── Sweep arc ────────────────────────────────────────────────────── */}
-      <FEMTube curve={arcCurve} color="#000000" />
+      {/* ── Tilted top strip touching the bottom ─────────────────────────── */}
+      <group position={[0, 0.1, 0]} rotation={[0, 0, 0.48]}>
+        <FEMBox w={0.98} h={0.060} d={0.19} barTension={0.08} color="#000000" segsY={20} />
+      </group>
 
     </group>
   );
@@ -225,7 +220,7 @@ export function Logo3D() {
         <directionalLight position={[ 3,  5,  4]} intensity={1.4} />
         <directionalLight position={[-2,  2, -1]} intensity={0.40} />
         <FloatingPatches />
-        <LogoModel />
+        <LogoModel animated={false} />
       </Canvas>
     </div>
   );

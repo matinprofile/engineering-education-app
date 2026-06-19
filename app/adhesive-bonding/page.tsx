@@ -1,6 +1,52 @@
+import React from "react";
 import Link from "next/link";
 import { TopicIcon } from "@/components/ui/TopicIcon";
 import { adhesiveBondingTools } from "@/lib/apps";
+import { ModuleLearningPath } from "@/components/path/ModuleLearningPath";
+import { learningPaths } from "@/lib/paths";
+
+const TOOL_ICONS: Record<string, React.ReactNode> = {
+  "failure-modes": (
+    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="3.5" width="20" height="4.5" rx="1" />
+      <rect x="2" y="16" width="20" height="4.5" rx="1" />
+      <polyline points="2,12 5.5,9.5 9,13.5 13,9.5 17,13.5 20.5,11 22,12" strokeWidth="1.8" />
+    </svg>
+  ),
+  "surfaceprep-v2": (
+    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="14" width="20" height="5" rx="1" />
+      <path d="M4 14 Q5 10 7 12 Q9 8 11 11 Q13 7 15 11 Q17 9 19 12 Q21 10 22 14" />
+      <path d="M7 8 L7 6M12 7 L12 5M17 8 L17 6" strokeWidth="1.4" />
+    </svg>
+  ),
+  "plasma-treatment": (
+    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M13 2 L9 10 L13 10 L11 22 L15 13 L11 13 Z" />
+      <path d="M5 8 Q3 12 5 16M19 8 Q21 12 19 16" strokeWidth="1.4" />
+    </svg>
+  ),
+  "slj-maker": (
+    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="9" width="12" height="6" rx="1" />
+      <rect x="10" y="9" width="12" height="6" rx="1" />
+      <path d="M10 9 L10 15" strokeWidth="1" strokeDasharray="2 1.5" />
+    </svg>
+  ),
+  "nr613-tutorial": (
+    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <polyline points="14 2 14 8 20 8" />
+      <polyline points="9 15 11 17 15 13" strokeWidth="2" />
+    </svg>
+  ),
+  "slj-manufacturing-guide": (
+    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="4" width="20" height="16" rx="2" />
+      <polygon points="10 9 10 15 16 12" fill="currentColor" stroke="none" />
+    </svg>
+  ),
+};
 
 const CATEGORIES = [
   {
@@ -104,8 +150,10 @@ export default function AdhesiveBondingPage() {
         </div>
       </section>
 
+      <ModuleLearningPath path={learningPaths["adhesive-bonding"]} />
+
       {/* Category sections */}
-      <div className="mx-auto w-full max-w-7xl space-y-16 px-4 pt-16 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-7xl space-y-16 px-4 pt-0 sm:px-6 lg:px-8">
         {CATEGORIES.map((cat, i) => {
           const tools = cat.slugs.map((s) => toolMap[s]).filter(Boolean);
           return (
@@ -134,6 +182,11 @@ export default function AdhesiveBondingPage() {
                     href={`/adhesive-bonding/apps/${tool.slug}`}
                     className="group rounded-2xl border border-[color:var(--border)] bg-white p-6 shadow-[0_16px_40px_rgba(48,54,44,0.08)] transition-all duration-300 hover:-translate-y-1 hover:border-accent/50 hover:shadow-[0_18px_40px_rgba(140,45,25,0.14)]"
                   >
+                    {TOOL_ICONS[tool.slug] && (
+                      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-accent/20 bg-accent/8 text-accent transition-colors group-hover:border-accent/40 group-hover:bg-accent/15">
+                        {TOOL_ICONS[tool.slug]}
+                      </div>
+                    )}
                     <h3 className="font-heading text-xl font-semibold text-text">{tool.title}</h3>
                     <p className="mt-3 text-sm leading-7 text-muted">{tool.description}</p>
                     <div className="mt-5 flex items-center gap-1 text-xs font-medium text-accent opacity-0 transition-opacity group-hover:opacity-100">

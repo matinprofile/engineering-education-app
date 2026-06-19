@@ -7,6 +7,7 @@ import { FailureModesSim } from "@/components/simulations/FailureModesSim";
 import { SLJMaker } from "@/components/simulations/SLJMaker";
 import { PlasmaTreatmentSim } from "@/components/simulations/PlasmaTreatmentSim";
 import { SLJManufacturingGuide } from "@/components/simulations/SLJManufacturingGuide";
+import { AdhesiveBondingModuleQuiz } from "@/components/simulations/AdhesiveBondingModuleQuiz";
 import type { ComponentType } from "react";
 
 type AdhesiveToolPageProps = {
@@ -20,6 +21,7 @@ const nativeComponents: Partial<Record<string, ComponentType>> = {
   "slj-maker": SLJMaker,
   "plasma-treatment": PlasmaTreatmentSim,
   "slj-manufacturing-guide": SLJManufacturingGuide,
+  "adhesive-bonding-quiz": AdhesiveBondingModuleQuiz,
 };
 
 export async function generateStaticParams() {
@@ -35,6 +37,7 @@ export default async function AdhesiveToolPage({ params }: AdhesiveToolPageProps
   }
 
   const NativeComponent = nativeComponents[slug];
+  const currentHref = `/adhesive-bonding/apps/${slug}`;
 
   if (NativeComponent) {
     return (
@@ -43,6 +46,7 @@ export default async function AdhesiveToolPage({ params }: AdhesiveToolPageProps
         description={tool.description}
         backHref="/adhesive-bonding"
         backLabel="Back to Adhesive Bonding"
+        currentHref={currentHref}
       >
         <NativeComponent />
       </AppToolFrame>
@@ -55,6 +59,7 @@ export default async function AdhesiveToolPage({ params }: AdhesiveToolPageProps
       description={tool.description}
       backHref="/adhesive-bonding"
       backLabel="Back to Adhesive Bonding"
+      currentHref={currentHref}
       iframeSrc={`/apps/${tool.fileName}`}
       iframeTitle={tool.title}
     />

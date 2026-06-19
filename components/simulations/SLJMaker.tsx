@@ -51,6 +51,7 @@ export function SLJMaker() {
   const sceneRef = useRef<THREE.Scene | null>(null);
   const animIdRef = useRef<number>(0);
   const controlsRef = useRef<OrbitControls | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
 
   const bottomRef = useRef<THREE.Mesh | null>(null);
   const topRef = useRef<THREE.Mesh | null>(null);
@@ -64,6 +65,7 @@ export function SLJMaker() {
     mixed: false, adhesiveApplied: false, closed: false, cured: false,
   });
   const [log, setLog] = useState<string[]>(["Simulation started."]);
+  const [showLog, setShowLog] = useState(false);
   const [mixing, setMixing] = useState(false);
   const [mixProgress, setMixProgress] = useState(0);
   const [cureProgress, setCureProgress] = useState(0);
@@ -232,6 +234,7 @@ export function SLJMaker() {
     renderer.setClearColor(0x071028);
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.shadowMap.enabled = true;
+    renderer.domElement.style.touchAction = "none";
     container.appendChild(renderer.domElement);
     rendererRef.current = renderer;
 
@@ -322,23 +325,32 @@ export function SLJMaker() {
     };
   }, []);
 
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    setIsMobile(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
   const goTo = (n: number) => setStep(Math.max(0, Math.min(4, n)));
 
   return (
     <div className="mx-auto w-full max-w-7xl px-0 pt-0">
-      <div style={{ display: "flex", height: "82vh", position: "relative" }}>
+      <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", height: isMobile ? "auto" : "82vh", position: "relative" }}>
         {/* Sidebar */}
-        <div style={{ width: 360, background: "#071028", borderRight: "1px solid rgba(255,255,255,0.06)", display: "flex", flexDirection: "column", padding: 16, overflowY: "auto" }}>
-          <h2 style={{ color: "#e6eef8", fontSize: 16, fontWeight: 700, margin: "0 0 4px" }}>Single-Lap Joint — Step by Step</h2>
-          <p style={{ color: "#6b7280", fontSize: 12, margin: "0 0 12px" }}>Assemble an adhesive single-lap joint (steel substrates).</p>
+        <div style={{ width: isMobile ? "100%" : 360, flexShrink: 0, background: "#071028", borderRight: isMobile ? "none" : "1px solid rgba(255,255,255,0.06)", borderTop: isMobile ? "1px solid rgba(255,255,255,0.06)" : "none", display: "flex", flexDirection: "column", padding: isMobile ? "16px 16px 28px" : 16, overflowY: isMobile ? "visible" : "auto", order: isMobile ? 1 : undefined }}>
+          <h2 style={{ color: "#e6eef8", fontSize: isMobile ? 17 : 16, fontWeight: 700, margin: "0 0 4px" }}>Single-Lap Joint — Step by Step</h2>
+          <p style={{ color: "#6b7280", fontSize: isMobile ? 13 : 12, margin: "0 0 12px" }}>Assemble an adhesive single-lap joint (steel substrates).</p>
 
           {/* Steps list */}
           <ul style={{ listStyle: "none", padding: 0, margin: "0 0 12px" }}>
             {STEPS.map((s, i) => (
               <li key={i} onClick={() => goTo(i)}
-                style={{ padding: "8px 10px", borderRadius: 8, marginBottom: 6, cursor: "pointer",
+                style={{ padding: "10px 12px", minHeight: 44, borderRadius: 8, marginBottom: 6, cursor: "pointer", touchAction: "manipulation",
                   background: i === step ? "rgba(37,99,235,0.15)" : "rgba(255,255,255,0.02)",
-                  border: i === step ? "1px solid rgba(37,99,235,0.3)" : "1px solid transparent" }}>
+                  border: i === step ? "1px solid rgba(37,99,235,0.3)" : "1px solid transparent",
+                  display: "flex", alignItems: "center" }}>
                 <div style={{ color: "#e6eef8", fontSize: 13, fontWeight: 600 }}>{s.title}</div>
               </li>
             ))}
@@ -346,23 +358,23 @@ export function SLJMaker() {
 
           <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
             <button onClick={() => goTo(step - 1)} disabled={step === 0}
-              style={{ flex: 1, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.06)", color: "#9ca3af", padding: "6px 10px", borderRadius: 8, cursor: "pointer", fontSize: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}>
+              style={{ flex: 1, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.06)", color: "#9ca3af", padding: isMobile ? "10px 14px" : "6px 10px", minHeight: 44, borderRadius: 8, cursor: "pointer", fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center", gap: 4, touchAction: "manipulation" }}>
               <ChevronLeft size={14} /> Prev
             </button>
             <button onClick={() => goTo(step + 1)} disabled={step === 4}
-              style={{ flex: 1, background: "#2563eb", border: "none", color: "white", padding: "6px 10px", borderRadius: 8, cursor: "pointer", fontSize: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}>
+              style={{ flex: 1, background: "#2563eb", border: "none", color: "white", padding: isMobile ? "10px 14px" : "6px 10px", minHeight: 44, borderRadius: 8, cursor: "pointer", fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center", gap: 4, touchAction: "manipulation" }}>
               Next <ChevronRight size={14} />
             </button>
             <button onClick={resetAll}
-              style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.06)", color: "#9ca3af", padding: "6px 10px", borderRadius: 8, cursor: "pointer", fontSize: 12 }}>
+              style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.06)", color: "#9ca3af", padding: isMobile ? "10px 14px" : "6px 10px", minHeight: 44, minWidth: 44, borderRadius: 8, cursor: "pointer", fontSize: 13, touchAction: "manipulation" }}>
               <RefreshCw size={14} />
             </button>
           </div>
 
           {/* Step content */}
           <div style={{ marginBottom: 10 }}>
-            <div style={{ color: "#e6eef8", fontSize: 13, fontWeight: 600, marginBottom: 4 }}>{STEPS[step].title}</div>
-            <div style={{ color: "#cbd5e1", fontSize: 12, background: "rgba(255,255,255,0.02)", padding: 8, borderRadius: 6, maxHeight: 140, overflowY: "auto", lineHeight: 1.6 }}>
+            <div style={{ color: "#e6eef8", fontSize: isMobile ? 14 : 13, fontWeight: 600, marginBottom: 4 }}>{STEPS[step].title}</div>
+            <div style={{ color: "#cbd5e1", fontSize: isMobile ? 13 : 12, background: "rgba(255,255,255,0.02)", padding: 8, borderRadius: 6, maxHeight: isMobile ? undefined : 140, overflowY: isMobile ? "visible" : "auto", lineHeight: 1.7 }}>
               {STEPS[step].instruction}
             </div>
           </div>
@@ -421,10 +433,16 @@ export function SLJMaker() {
 
           {/* Log */}
           <div style={{ fontSize: 12, color: "#9ca3af" }}>
-            <div style={{ marginBottom: 4, fontWeight: 600 }}>Simulation log</div>
-            <div style={{ fontSize: 11, color: "#cbd5e1", maxHeight: 120, overflowY: "auto", background: "rgba(255,255,255,0.02)", borderRadius: 6, padding: 8 }}>
-              {log.map((entry, i) => <div key={i} style={{ marginBottom: 4 }}>{entry}</div>)}
-            </div>
+            <button onClick={() => setShowLog((v) => !v)}
+              style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", color: "#9ca3af", fontSize: 12, fontWeight: 600, cursor: "pointer", padding: 0, marginBottom: 4 }}>
+              Simulation log
+              <span style={{ fontSize: 10 }}>{showLog ? "▲" : "▼"}</span>
+            </button>
+            {(!isMobile || showLog) && (
+              <div style={{ fontSize: 11, color: "#cbd5e1", maxHeight: 120, overflowY: "auto", background: "rgba(255,255,255,0.02)", borderRadius: 6, padding: 8 }}>
+                {log.map((entry, i) => <div key={i} style={{ marginBottom: 4 }}>{entry}</div>)}
+              </div>
+            )}
           </div>
 
           <div style={{ marginTop: "auto", paddingTop: 8, fontSize: 11, color: "#6b7280", borderTop: "1px solid rgba(255,255,255,0.04)" }}>
@@ -433,9 +451,9 @@ export function SLJMaker() {
         </div>
 
         {/* 3D Canvas */}
-        <div ref={containerRef} style={{ flex: 1, position: "relative" }}>
+        <div ref={containerRef} style={{ flex: 1, height: isMobile ? 280 : undefined, minHeight: isMobile ? 280 : undefined, position: "relative", touchAction: "none", order: isMobile ? 0 : undefined }}>
           <div style={{ position: "absolute", left: 12, bottom: 12, background: "rgba(3,7,18,0.7)", padding: 10, borderRadius: 8, fontSize: 12, color: "#cbd5e1", zIndex: 10 }}>
-            Rotate / Zoom: mouse. Use action buttons in the sidebar.
+            {isMobile ? "Drag to rotate · Pinch to zoom" : "Rotate / Zoom: mouse. Use action buttons in the sidebar."}
           </div>
         </div>
       </div>
@@ -450,9 +468,9 @@ function ActionBtn({ onClick, done, label, ghost, disabled }: { onClick: () => v
         background: done ? "rgba(34,197,94,0.15)" : ghost ? "transparent" : "#2563eb",
         border: done ? "1px solid rgba(34,197,94,0.3)" : ghost ? "1px solid rgba(255,255,255,0.06)" : "none",
         color: done ? "#9ae6b4" : ghost ? "#9ca3af" : "white",
-        padding: "7px 12px", borderRadius: 8, cursor: done || disabled ? "default" : "pointer",
-        fontSize: 12, textAlign: "left", opacity: disabled && !done ? 0.7 : 1,
-        display: "flex", alignItems: "center", gap: 6,
+        padding: "10px 14px", minHeight: 44, borderRadius: 8, cursor: done || disabled ? "default" : "pointer",
+        fontSize: 13, textAlign: "left", opacity: disabled && !done ? 0.7 : 1,
+        display: "flex", alignItems: "center", gap: 6, touchAction: "manipulation",
       }}>
       {done && <span>✓</span>}
       {label}

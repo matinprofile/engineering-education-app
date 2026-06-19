@@ -10,6 +10,7 @@ export default function MillerPage() {
       iframeSrc="/src/cristalografia/miller/miller.html"
       iframeTitle="Crystallography Miller Indices"
       heightClassName="h-[82vh]"
+      currentHref="/material-science/crystallography/miller"
     />
   );
 }

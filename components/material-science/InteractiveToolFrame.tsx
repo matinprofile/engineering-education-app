@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { getPathForHref } from "@/lib/paths";
+import { PathStepNav } from "@/components/path/PathStepNav";
 
 type InteractiveToolFrameProps = {
   title: string;
@@ -8,6 +10,7 @@ type InteractiveToolFrameProps = {
   iframeSrc: string;
   iframeTitle: string;
   heightClassName?: string;
+  currentHref?: string;
 };
 
 export function InteractiveToolFrame({
@@ -18,7 +21,10 @@ export function InteractiveToolFrame({
   iframeSrc,
   iframeTitle,
   heightClassName = "h-[78vh]",
+  currentHref,
 }: InteractiveToolFrameProps) {
+  const pathInfo = currentHref ? getPathForHref(currentHref) : null;
+
   return (
     <div className="w-full pb-10">
       <section className="relative overflow-hidden border-b border-[color:var(--border)] bg-primary/45">
@@ -45,6 +51,14 @@ export function InteractiveToolFrame({
           />
         </div>
       </div>
+
+      {pathInfo && (
+        <PathStepNav
+          steps={pathInfo.path.steps}
+          currentIndex={pathInfo.stepIndex}
+          pathTitle={pathInfo.path.title}
+        />
+      )}
     </div>
   );
 }

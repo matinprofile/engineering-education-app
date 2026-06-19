@@ -9,6 +9,7 @@ export default function StructurePage() {
       backLabel="Back to Crystallography"
       iframeSrc="/src/cristalografia/structures/structures.html"
       iframeTitle="Crystallography Structure"
+      currentHref="/material-science/crystallography/structure"
     />
   );
 }

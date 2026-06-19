@@ -6,6 +6,8 @@ import { FSWQuiz } from "@/components/simulations/FSWQuiz";
 import { RadiographySim } from "@/components/simulations/RadiographySim";
 import { UltrasoundAScan } from "@/components/simulations/UltrasoundAScan";
 import { MAGWeldingSim } from "@/components/simulations/MAGWeldingSim";
+import { WeldingModuleQuiz } from "@/components/simulations/WeldingModuleQuiz";
+import { JointPreparationSim } from "@/components/simulations/JointPreparationSim";
 import type { ComponentType } from "react";
 
 type WeldingToolPageProps = {
@@ -16,8 +18,10 @@ const nativeComponents: Partial<Record<string, ComponentType>> = {
   "mag-welding-sim": MAGWeldingSim,
   "laser-quiz": LaserQuiz,
   "fsw-quiz": FSWQuiz,
+  "welding-module-quiz": WeldingModuleQuiz,
   "radiography-sim": RadiographySim,
   "ultrasound-a-scan": UltrasoundAScan,
+  "joint-preparation-sim": JointPreparationSim,
 };
 
 export async function generateStaticParams() {
@@ -33,6 +37,7 @@ export default async function WeldingToolPage({ params }: WeldingToolPageProps) 
   }
 
   const NativeComponent = nativeComponents[slug];
+  const currentHref = `/welding/apps/${slug}`;
 
   if (NativeComponent) {
     return (
@@ -41,6 +46,7 @@ export default async function WeldingToolPage({ params }: WeldingToolPageProps) 
         description={tool.description}
         backHref="/welding"
         backLabel="Back to Welding"
+        currentHref={currentHref}
       >
         <NativeComponent />
       </AppToolFrame>
@@ -53,6 +59,7 @@ export default async function WeldingToolPage({ params }: WeldingToolPageProps) 
       description={tool.description}
       backHref="/welding"
       backLabel="Back to Welding"
+      currentHref={currentHref}
       iframeSrc={`/apps/${tool.fileName}`}
       iframeTitle={tool.title}
     />

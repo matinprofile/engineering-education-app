@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { SectionWrapper } from "@/components/ui/SectionWrapper";
 import { TopicIcon } from "@/components/ui/TopicIcon";
+import { ModuleLearningPath } from "@/components/path/ModuleLearningPath";
+import { learningPaths } from "@/lib/paths";
 
 const interactiveModules = [
   {
@@ -45,6 +47,8 @@ export default function JoiningFormingPage() {
           </p>
         </div>
       </section>
+
+      <ModuleLearningPath path={learningPaths["joining-forming"]} />
 
       <SectionWrapper title="Interactive Modules" subtitle="Choose a forming-based application to open local simulations.">
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">

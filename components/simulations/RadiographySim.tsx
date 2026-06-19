@@ -10,38 +10,38 @@ const DEFECT_DATA: Record<
   { title: string; desc: string; isDefect: boolean }
 > = {
   clean: {
-    title: "Junta Sã (Aprovada)",
+    title: "Sound Joint (Approved)",
     isDefect: false,
-    desc: "A soldadura apresenta uma densidade uniforme na área do cordão. A área mais clara representa o reforço da soldadura, que é mais espesso e absorve mais radiação. Não existem manchas escuras irregulares.",
+    desc: "The weld shows uniform density across the bead area. The lighter area represents the weld reinforcement, which is thicker and absorbs more radiation. No irregular dark spots are present.",
   },
   porosity: {
-    title: "Porosidade Agrupada",
+    title: "Clustered Porosity",
     isDefect: true,
-    desc: "Gás aprisionado durante a solidificação. Aparece como pontos redondos e escuros porque o gás tem densidade quase nula comparada ao aço, permitindo a passagem livre dos Raios-X.",
+    desc: "Gas trapped during solidification. Appears as round, dark spots because the gas has almost zero density compared to steel, allowing free passage of X-rays.",
   },
   crack: {
-    title: "Fissura Transversal (Crack)",
+    title: "Transverse Crack",
     isDefect: true,
-    desc: "Uma descontinuidade crítica. Aparece como uma linha fina, escura e dentada. É escura porque é um vazio estreito. As extremidades são tipicamente muito finas e aguçadas. Requer reparação imediata.",
+    desc: "A critical discontinuity. Appears as a thin, dark, and jagged line. It is dark because it is a narrow void. The ends are typically very fine and sharp. Requires immediate repair.",
   },
   lof: {
-    title: "Falta de Fusão Lateral",
+    title: "Lateral Lack of Fusion",
     isDefect: true,
-    desc: "O metal de soldadura não fundiu com o metal base. Aparece como uma linha reta e escura alinhada com a preparação do chanfro. Um lado da linha é difuso (solda), o outro é muito reto (chanfro original).",
+    desc: "The weld metal did not fuse with the base metal. Appears as a straight, dark line aligned with the groove preparation. One side of the line is diffuse (weld), the other is very straight (original groove).",
   },
   slag: {
-    title: "Inclusão de Escória",
+    title: "Slag Inclusion",
     isDefect: true,
-    desc: "Material não metálico retido na solda. Aparece como formas irregulares ('batatas'), menos escuras que a porosidade ou fissuras, pois a escória tem alguma densidade, mas é menor que a do aço.",
+    desc: "Non-metallic material retained in the weld. Appears as irregular shapes ('potatoes'), less dark than porosity or cracks, since slag has some density but less than steel.",
   },
 };
 
 const BUTTONS: { key: DefectType; label: string }[] = [
-  { key: "clean", label: "Junta sã (sem defeitos)" },
-  { key: "porosity", label: "Porosidade agrupada" },
-  { key: "crack", label: "Fissura transversal (crack)" },
-  { key: "lof", label: "Falta de fusão lateral" },
-  { key: "slag", label: "Inclusão de escória" },
+  { key: "clean", label: "Sound Joint (No Defects)" },
+  { key: "porosity", label: "Clustered Porosity" },
+  { key: "crack", label: "Transverse Crack" },
+  { key: "lof", label: "Lateral Lack of Fusion" },
+  { key: "slag", label: "Slag Inclusion" },
 ];
 
 function DefectVisual({ type, visible }: { type: DefectType | null; visible: boolean }) {
@@ -189,25 +189,25 @@ export function RadiographySim() {
           <div>
             <h2 className="flex items-center gap-3 text-2xl font-extrabold tracking-tight text-blue-400 md:text-3xl">
               <Eye className="h-8 w-8 shrink-0" />
-              Simulador de análise radiográfica em juntas soldadas
+              Radiographic Analysis Simulator
             </h2>
-            <p className="mt-1 text-slate-400">Interpretação de defeitos em soldadura</p>
+            <p className="mt-1 text-slate-400">Weld defect interpretation</p>
             <p className="mt-0.5 text-sm text-slate-500">
-              Selecione um defeito no menu para visualizar a sua aparência no filme radiográfico.
+              Select a defect from the menu to view how it appears on the radiographic film.
             </p>
           </div>
         </div>
       </header>
 
-      <main className="mx-auto grid max-w-7xl grid-cols-1 gap-6 p-4 sm:p-6 lg:grid-cols-3">
+      <main className="mx-auto grid max-w-7xl grid-cols-1 gap-4 p-4 sm:gap-6 sm:p-6 lg:grid-cols-3">
         {/* Film viewer */}
         <div className="flex flex-col overflow-hidden rounded-xl border border-slate-700 bg-black shadow-2xl lg:col-span-2">
-          <div className="flex items-center justify-between border-b border-slate-700 bg-slate-800 px-4 py-2">
+          <div className="flex flex-col gap-2 border-b border-slate-700 bg-slate-800 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
             <span className="font-mono text-xs uppercase tracking-widest text-slate-400">
-              Negatoscópio Digital
+              Digital Radioscope
             </span>
             <span className="flex items-center gap-1 text-xs text-blue-400">
-              <Zap className="h-3 w-3" /> Fonte: Raios-X 200kV
+              <Zap className="h-3 w-3" /> Source: 200kV X-ray
             </span>
           </div>
 
@@ -264,28 +264,28 @@ export function RadiographySim() {
 
           <div className="border-t border-slate-800 bg-slate-900 p-3 text-center">
             <p className="font-mono text-xs text-slate-500">
-              Filme Tipo D7 | Densidade 2.5 | Distância Fonte-Filme 700mm
+              Film Type D7 | Density 2.5 | Source-Film Distance 700mm
             </p>
           </div>
         </div>
 
         {/* Controls + info */}
-        <div className="flex flex-col gap-6 lg:col-span-1">
+        <div className="flex flex-col gap-4 sm:gap-6 lg:col-span-1">
           {/* Defect selector */}
-          <div className="rounded-xl border border-slate-700 bg-slate-800 p-6 shadow-lg">
+          <div className="rounded-xl border border-slate-700 bg-slate-800 p-4 shadow-lg sm:p-6">
             <h3 className="mb-4 flex items-center gap-2 font-bold text-blue-400">
               <ListFilter className="h-5 w-5" />
-              Seletor de defeitos
+              Defect Selector
             </h3>
-            <div className="grid gap-3">
+            <div className="grid gap-2 sm:gap-3">
               {BUTTONS.map(({ key, label }) => (
                 <button
                   key={key}
                   onClick={() => handleSelect(key)}
-                  className={`rounded-lg border px-4 py-3 text-left text-sm font-semibold transition-colors ${
+                  className={`rounded-lg border px-4 py-3 text-left text-sm font-semibold transition-colors active:scale-95 ${
                     selected === key
                       ? "border-blue-400 bg-slate-900 text-white"
-                      : "border-transparent bg-slate-700 text-slate-200 hover:bg-slate-600 hover:text-white"
+                      : "border-transparent bg-slate-700 text-slate-200 hover:bg-slate-600 hover:text-white active:bg-slate-500"
                   }`}
                 >
                   {label}
@@ -295,15 +295,15 @@ export function RadiographySim() {
           </div>
 
           {/* Diagnosis */}
-          <div className="flex-grow rounded-xl border border-slate-700 bg-slate-800 p-6 shadow-lg">
+          <div className="flex-grow rounded-xl border border-slate-700 bg-slate-800 p-4 shadow-lg sm:p-6">
             <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400">
-              Diagnóstico e contexto
+              Diagnosis & Context
             </h3>
 
             {data ? (
               <>
                 <h2
-                  className={`mb-2 text-xl font-bold ${
+                  className={`mb-2 text-lg sm:text-xl font-bold ${
                     data.isDefect ? "text-red-400" : "text-emerald-400"
                   }`}
                 >
@@ -313,26 +313,25 @@ export function RadiographySim() {
               </>
             ) : (
               <>
-                <h2 className="mb-2 text-xl font-bold text-white">Aguardando seleção...</h2>
+                <h2 className="mb-2 text-lg sm:text-xl font-bold text-white">Awaiting Selection...</h2>
                 <p className="text-sm leading-relaxed text-slate-300">
-                  Selecione um tipo de defeito na lista acima para projetar a sua imagem no filme
-                  radiográfico.
+                  Select a defect type from the list above to project its image on the radiographic film.
                 </p>
                 <p className="mt-2 text-sm text-slate-400">
-                  Observe as diferenças em densidade (tons de cinza) e morfologia (forma).
+                  Observe the differences in density (gray tones) and morphology (shape).
                 </p>
               </>
             )}
 
-            <div className="mt-6 border-t border-slate-700 pt-4">
+            <div className="mt-4 border-t border-slate-700 pt-4 sm:mt-6">
               <div className="mb-1 flex items-center justify-between font-mono text-[10px] uppercase text-slate-500">
-                <span>Menos denso</span>
-                <span>Mais denso (metal)</span>
+                <span>Less Dense</span>
+                <span>More Dense (Metal)</span>
               </div>
               <div className="h-2 w-full rounded-full bg-gradient-to-r from-black via-gray-500 to-white" />
               <div className="mt-1 flex items-center justify-between font-mono text-[10px] text-slate-400">
-                <span>Defeito (escuro)</span>
-                <span>Metal base (claro)</span>
+                <span>Defect (Dark)</span>
+                <span>Base Metal (Light)</span>
               </div>
             </div>
           </div>

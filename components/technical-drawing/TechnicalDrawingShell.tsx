@@ -1,15 +1,20 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { getPathForHref } from "@/lib/paths";
+import { PathStepNav } from "@/components/path/PathStepNav";
 
 type TechnicalDrawingShellProps = {
   title: string;
   description: string;
   backHref: string;
   backLabel: string;
+  currentHref?: string;
   children: ReactNode;
 };
 
-export function TechnicalDrawingShell({ title, description, backHref, backLabel, children }: TechnicalDrawingShellProps) {
+export function TechnicalDrawingShell({ title, description, backHref, backLabel, currentHref, children }: TechnicalDrawingShellProps) {
+  const pathInfo = currentHref ? getPathForHref(currentHref) : null;
+
   return (
     <div className="w-full pb-10">
       <section className="relative overflow-hidden border-b border-[color:var(--border)] bg-primary/45">
@@ -28,6 +33,14 @@ export function TechnicalDrawingShell({ title, description, backHref, backLabel,
       </section>
 
       <div className="mx-auto w-full max-w-7xl px-4 pt-8 sm:px-6 lg:px-8">{children}</div>
+
+      {pathInfo && (
+        <PathStepNav
+          steps={pathInfo.path.steps}
+          currentIndex={pathInfo.stepIndex}
+          pathTitle={pathInfo.path.title}
+        />
+      )}
     </div>
   );
 }

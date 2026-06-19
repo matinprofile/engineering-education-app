@@ -9,6 +9,7 @@ export default function TotalSolubilityPage() {
       backLabel="Back to Phase Diagram"
       iframeSrc="/src/diagramaFases/fases.html"
       iframeTitle="Phase Diagram Total Solubility"
+      currentHref="/material-science/phase-diagram/total-solubility"
     />
   );
 }

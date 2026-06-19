@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { recordQuizScore } from "@/lib/tracking";
 
 export type QuizQuestion = {
   question: string;
@@ -10,9 +11,10 @@ export type QuizQuestion = {
 
 type QuizSimulationProps = {
   questions: QuizQuestion[];
+  quizId?: string;
 };
 
-export function QuizSimulation({ questions }: QuizSimulationProps) {
+export function QuizSimulation({ questions, quizId }: QuizSimulationProps) {
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [submitted, setSubmitted] = useState(false);
 
@@ -25,7 +27,11 @@ export function QuizSimulation({ questions }: QuizSimulationProps) {
   }
 
   function handleSubmit() {
-    if (Object.keys(answers).length === questions.length) setSubmitted(true);
+    if (Object.keys(answers).length === questions.length) {
+      const finalScore = questions.filter((q, i) => answers[i] === q.correctAnswer).length;
+      setSubmitted(true);
+      if (quizId) recordQuizScore(quizId, finalScore, questions.length);
+    }
   }
 
   function handleRetry() {

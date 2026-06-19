@@ -9,6 +9,7 @@ export default function PartialSolubilityPage() {
       backLabel="Back to Phase Diagram"
       iframeSrc="/src/diagramaFases/fases.html"
       iframeTitle="Phase Diagram Partial Solubility"
+      currentHref="/material-science/phase-diagram/partial-solubility"
     />
   );
 }

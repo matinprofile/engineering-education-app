@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 709.33 702.27">
+  <rect width="709.33" height="702.27" fill="#8c2d19"/>
+  <g fill="#fff">
+    <rect x="120" y="250" width="470" height="140" rx="30" />
+    <path d="M130 340 H590" stroke="#8c2d19" stroke-width="24" stroke-linecap="round" />
+    <path d="M160 320 V380" stroke="#8c2d19" stroke-width="24" stroke-linecap="round" />
+    <path d="M600 320 V380" stroke="#8c2d19" stroke-width="24" stroke-linecap="round" />
+    <rect x="280" y="220" width="160" height="380" rx="40" fill="#fff" />
+    <rect x="310" y="220" width="100" height="380" rx="20" fill="#8c2d19" />
+    <path d="M320 300 H380" stroke="#fff" stroke-width="18" stroke-linecap="round" />
+    <path d="M320 360 H380" stroke="#fff" stroke-width="18" stroke-linecap="round" />
+    <path d="M320 420 H380" stroke="#fff" stroke-width="18" stroke-linecap="round" />
+    <path d="M320 480 H380" stroke="#fff" stroke-width="18" stroke-linecap="round" />
+    <path d="M330 260 L330 230" stroke="#fff" stroke-width="24" stroke-linecap="round" />
+    <path d="M380 260 L380 230" stroke="#fff" stroke-width="24" stroke-linecap="round" />
+  </g>
+  <g fill="none" stroke="#fff" stroke-width="24" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M130 340 L170 280" />
+    <path d="M590 340 L630 280" />
+    <path d="M130 380 L170 440" />
+    <path d="M590 380 L630 440" />
+  </g>
+</svg>

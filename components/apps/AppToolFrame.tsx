@@ -1,11 +1,14 @@
 import Link from "next/link";
 import { type ReactNode } from "react";
+import { getPathForHref } from "@/lib/paths";
+import { PathStepNav } from "@/components/path/PathStepNav";
 
 type AppToolFrameProps = {
   title: string;
   description: string;
   backHref: string;
   backLabel: string;
+  currentHref?: string;
 } & (
   | { iframeSrc: string; iframeTitle: string; children?: never }
   | { iframeSrc?: never; iframeTitle?: never; children: ReactNode }
@@ -16,10 +19,13 @@ export function AppToolFrame({
   description,
   backHref,
   backLabel,
+  currentHref,
   iframeSrc,
   iframeTitle,
   children,
 }: AppToolFrameProps) {
+  const pathInfo = currentHref ? getPathForHref(currentHref) : null;
+
   return (
     <div className="w-full pb-10">
       <section className="relative overflow-hidden border-b border-[color:var(--border)] bg-primary/45">
@@ -45,6 +51,14 @@ export function AppToolFrame({
             <iframe src={iframeSrc} title={iframeTitle} className="h-[82vh] w-full border-0" />
           </div>
         </div>
+      )}
+
+      {pathInfo && (
+        <PathStepNav
+          steps={pathInfo.path.steps}
+          currentIndex={pathInfo.stepIndex}
+          pathTitle={pathInfo.path.title}
+        />
       )}
     </div>
   );

@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { SectionWrapper } from "@/components/ui/SectionWrapper";
 import { TopicIcon } from "@/components/ui/TopicIcon";
+import { ModuleLearningPath } from "@/components/path/ModuleLearningPath";
+import { learningPaths } from "@/lib/paths";
 
 const interactiveModules = [
   {
@@ -66,6 +68,8 @@ export default function TechnicalDrawingPage() {
           </p>
         </div>
       </section>
+
+      <ModuleLearningPath path={learningPaths["technical-drawing"]} />
 
       <SectionWrapper
         title="Interactive Modules"
