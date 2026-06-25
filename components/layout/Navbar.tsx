@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
+import { AuthButton } from "@/components/auth/AuthButton";
 
 const navItems = [
   { label: "Adhesive Bonding", href: "/adhesive-bonding" },
@@ -59,6 +60,7 @@ export function Navbar() {
             <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
             My Progress
           </Link>
+          <AuthButton />
           <Link
             href="/#categories"
             className="rounded-xl border border-accent/30 bg-accent/8 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-accent transition-all duration-300 hover:bg-accent/14"
@@ -114,6 +116,16 @@ export function Navbar() {
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
               My Progress
+            </Link>
+          </li>
+          <li>
+            <Link
+              href="/auth/login"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-2 py-4 text-sm font-medium text-muted transition-colors duration-200 hover:text-accent"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+              Sign In
             </Link>
           </li>
         </ul>

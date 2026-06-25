@@ -11,6 +11,12 @@ const interactiveModules = [
     description:
       "Interactive parameter-to-video exploration for die depth, clearance, inclination, and other clinching controls.",
   },
+  {
+    title: "Tube Fit Joining Simulator",
+    href: "/joining-forming/tube-fit",
+    description:
+      "Adjust radial interference, wall thickness, expansion ratio, and material yield strength to estimate pull-out force and joint quality for forming-based tube connections.",
+  },
 ];
 
 const focusAreas = [
@@ -18,6 +24,8 @@ const focusAreas = [
   "Material flow sensitivity to parameter bounds",
   "Visual comparison of min and max settings",
   "Video-based process interpretation",
+  "Radial interference and pull-out force relationship",
+  "Tube expansion and springback effects",
 ];
 
 export default function JoiningFormingPage() {
