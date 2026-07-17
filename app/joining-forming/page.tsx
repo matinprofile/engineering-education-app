@@ -17,6 +17,12 @@ const interactiveModules = [
     description:
       "Adjust radial interference, wall thickness, expansion ratio, and material yield strength to estimate pull-out force and joint quality for forming-based tube connections.",
   },
+  {
+    title: "SPR Simulator",
+    href: "/joining-forming/spr",
+    description:
+      "Tune rivet length, die depth, die cavity diameter, rivet yield strength, and leg thickness to see their effect on interlock, bottom thickness, and joining force in self-piercing riveted joints.",
+  },
 ];
 
 const focusAreas = [
@@ -26,6 +32,7 @@ const focusAreas = [
   "Video-based process interpretation",
   "Radial interference and pull-out force relationship",
   "Tube expansion and springback effects",
+  "Rivet-die interlock and bottom thickness trade-offs",
 ];
 
 export default function JoiningFormingPage() {

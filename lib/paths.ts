@@ -66,6 +66,7 @@ export const learningPaths: Record<string, LearningPath> = {
     steps: [
       { title: "Clinching Simulator", href: "/joining-forming/clinching", duration: "20 min" },
       { title: "Tube Fit Joining Simulator", href: "/joining-forming/tube-fit", duration: "15 min" },
+      { title: "SPR Simulator", href: "/joining-forming/spr", duration: "15 min" },
       { title: "Module Quiz", href: "/joining-forming/quiz", duration: "8 min" },
     ],
   },
