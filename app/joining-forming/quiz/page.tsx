@@ -26,7 +26,7 @@ export default function JoiningFormingQuizPage() {
             Module Quiz — Joining by Forming
           </h1>
           <p className="mt-3 max-w-3xl text-sm leading-7 text-muted sm:text-base">
-            Test your knowledge of clinching as a cold joining-by-forming process: mechanism, advantages, and die design.
+            Test your knowledge of clinching as a cold joining-by-forming process: mechanism, advantages, and die design
           </p>
         </div>
       </section>

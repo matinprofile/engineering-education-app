@@ -8,7 +8,7 @@ const CATEGORIES = [
   {
     id: "process-simulators",
     title: "Process Simulators",
-    description: "Simulate and control welding processes — parameters, geometry, and technique.",
+    description: "Simulate and control welding processes — parameters, geometry, and technique",
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
         <path d="M12 2L2 7l10 5 10-5-10-5z" />
@@ -21,7 +21,7 @@ const CATEGORIES = [
   {
     id: "ndt-inspection",
     title: "NDT & Inspection",
-    description: "Apply non-destructive testing techniques to detect and interpret weld defects.",
+    description: "Apply non-destructive testing techniques to detect and interpret weld defects",
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="11" cy="11" r="8" />
@@ -34,7 +34,7 @@ const CATEGORIES = [
   {
     id: "knowledge-checks",
     title: "Knowledge Checks",
-    description: "Test understanding of laser welding and friction stir welding principles.",
+    description: "Test understanding of laser welding and friction stir welding principles",
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
         <path d="M12 22C6.48 22 2 17.52 2 12S6.48 2 12 2s10 4.48 10 10-4.48 10-10 10z" />
@@ -84,7 +84,7 @@ export default function WeldingPage() {
           </div>
           <p className="mt-5 max-w-3xl text-base leading-8 text-muted sm:text-lg">
             Follow the welding learning path — from process control and joint preparation through
-            non-destructive testing to knowledge validation — using seven interactive tools.
+            non-destructive testing to knowledge validation — using seven interactive tools
           </p>
 
           {/* Workflow stepper */}

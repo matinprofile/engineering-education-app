@@ -26,7 +26,7 @@ export default function MaterialScienceQuizPage() {
             Module Quiz — Material Science
           </h1>
           <p className="mt-3 max-w-3xl text-sm leading-7 text-muted sm:text-base">
-            Test your knowledge of phase diagrams, solid solubility systems, crystal structures, and Miller indices.
+            Test your knowledge of phase diagrams, solid solubility systems, crystal structures, and Miller indices
           </p>
         </div>
       </section>

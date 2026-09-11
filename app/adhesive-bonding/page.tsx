@@ -52,7 +52,7 @@ const CATEGORIES = [
   {
     id: "surface-preparation",
     title: "Surface Preparation",
-    description: "Simulate and evaluate surface treatment processes before bonding.",
+    description: "Simulate and evaluate surface treatment processes before bonding",
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
         <path d="M3 21h18M3 10h18M3 7l9-4 9 4M4 10v11M20 10v11M8 10v11M12 10v11M16 10v11" />
@@ -63,7 +63,7 @@ const CATEGORIES = [
   {
     id: "joint-manufacturing",
     title: "Joint Manufacturing & Design",
-    description: "Step through joint fabrication workflows, design guidelines, and process videos.",
+    description: "Step through joint fabrication workflows, design guidelines, and process videos",
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
         <rect x="3" y="8" width="18" height="8" rx="2" />
@@ -75,7 +75,7 @@ const CATEGORIES = [
   {
     id: "failure-analysis",
     title: "Failure Analysis",
-    description: "Identify and understand adhesive, cohesive, and substrate failure mechanisms.",
+    description: "Identify and understand adhesive, cohesive, and substrate failure mechanisms",
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
         <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
@@ -125,7 +125,7 @@ export default function AdhesiveBondingPage() {
           </div>
           <p className="mt-5 max-w-3xl text-base leading-8 text-muted sm:text-lg">
             Follow the bonded joint production workflow — from surface treatment through joint
-            manufacturing to failure analysis — using six interactive simulations.
+            manufacturing to failure analysis — using six interactive simulations
           </p>
 
           {/* Workflow stepper */}

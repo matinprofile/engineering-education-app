@@ -47,7 +47,7 @@ export function TopicPage({ heading, tagline, intro, icon, bullets, keyTopics, a
             Learning Outcomes
           </h2>
           <p className="max-w-2xl text-muted">
-            Core competencies developed through the study of this subject area.
+            Core competencies developed through the study of this subject area
           </p>
         </header>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -71,7 +71,7 @@ export function TopicPage({ heading, tagline, intro, icon, bullets, keyTopics, a
               Key Topics
             </h2>
             <p className="max-w-2xl text-muted">
-              In-depth subject areas covered within this engineering module.
+              In-depth subject areas covered within this engineering module
             </p>
           </header>
           <div className="grid gap-5 md:grid-cols-2">
@@ -95,7 +95,7 @@ export function TopicPage({ heading, tagline, intro, icon, bullets, keyTopics, a
             Industrial Applications
           </h2>
           <p className="max-w-2xl text-muted">
-            Sectors and use cases where this knowledge drives real-world engineering value.
+            Sectors and use cases where this knowledge drives real-world engineering value
           </p>
         </header>
         <div className="flex flex-wrap gap-3">

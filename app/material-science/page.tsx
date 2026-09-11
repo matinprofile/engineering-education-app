@@ -9,13 +9,13 @@ const interactiveModules = [
     title: "Phase Diagram",
     href: "/material-science/phase-diagram",
     description:
-      "Study total solubility, partial solubility, and insolubility using interactive phase-diagram tools.",
+      "Study total solubility, partial solubility, and insolubility using interactive phase-diagram tools",
   },
   {
     title: "Crystallography",
     href: "/material-science/crystallography",
     description:
-      "Explore crystal structures and Miller indices through embedded visualization tools.",
+      "Explore crystal structures and Miller indices through embedded visualization tools",
   },
 ];
 
@@ -58,7 +58,7 @@ export default function MaterialSciencePage() {
             </div>
           </div>
           <p className="mt-5 max-w-3xl text-base leading-8 text-muted sm:text-lg">
-            This module extends the material-science section with local interactive tools adapted from the virtual learning platform while preserving this project&apos;s layout, navigation, and visual language.
+            This module extends the material-science section with local interactive tools adapted from the virtual learning platform while preserving this project&apos;s layout, navigation, and visual language
           </p>
         </div>
       </section>
@@ -67,7 +67,7 @@ export default function MaterialSciencePage() {
 
       <SectionWrapper
         title="Interactive Modules"
-        subtitle="Choose a toolset to explore material behavior and crystal geometry."
+        subtitle="Choose a toolset to explore material behavior and crystal geometry"
       >
         <div className="grid gap-5 md:grid-cols-2">
           {interactiveModules.map((item) => (
@@ -85,7 +85,7 @@ export default function MaterialSciencePage() {
 
       <SectionWrapper
         title="Learning Focus"
-        subtitle="Core concepts covered by the interactive material-science activities."
+        subtitle="Core concepts covered by the interactive material-science activities"
       >
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {focusAreas.map((area) => (

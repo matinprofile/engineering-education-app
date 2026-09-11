@@ -24,7 +24,7 @@ export default function TubeFitPage() {
           </Link>
           <h1 className="font-heading text-3xl font-semibold text-text sm:text-4xl">Tube Fit Joining Simulator</h1>
           <p className="mt-3 max-w-3xl text-sm leading-7 text-muted sm:text-base">
-            Explore how tube fit parameters — radial interference, wall thickness, material yield strength, and expansion ratio — affect joint pull-out force and assembly quality in forming-based tube connections.
+            Explore how tube fit parameters — radial interference, wall thickness, material yield strength, and expansion ratio — affect joint pull-out force and assembly quality in forming-based tube connections
           </p>
         </div>
       </section>

@@ -136,8 +136,8 @@ export function ProjectionConstructorTool() {
             <ConstructorThreeDView count={count} activeView={activeView} />
           ) : (
             <div className="flex h-full flex-col justify-center gap-5 p-6 text-text">
-              <h2 className="font-heading text-3xl font-semibold">Select the most suitable direction for observing the object.</h2>
-              <p className="text-base leading-8 text-muted">Choose the viewing direction that best clarifies the piece before advancing through the construction steps.</p>
+              <h2 className="font-heading text-3xl font-semibold">Select the most suitable direction for observing the object</h2>
+              <p className="text-base leading-8 text-muted">Choose the viewing direction that best clarifies the piece before advancing through the construction steps</p>
               <p className="text-sm text-muted">Good practice note: lower details should be located further forwards and higher details should be located further back.</p>
             </div>
           )}

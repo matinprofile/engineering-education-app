@@ -9,19 +9,19 @@ const interactiveModules = [
     title: "Orthographic Views",
     href: "/technical-drawing/orthographic-views",
     description:
-      "Relate top and side views through interactive 2D geometry and view-selection exercises.",
+      "Relate top and side views through interactive 2D geometry and view-selection exercises",
   },
   {
     title: "Projection Constructor",
     href: "/technical-drawing/projection-constructor",
     description:
-      "Build the isometric interpretation step by step from the orthographic information.",
+      "Build the isometric interpretation step by step from the orthographic information",
   },
   {
     title: "3D Perspective",
     href: "/technical-drawing/3d-perspective",
     description:
-      "Inspect the 3D model while highlighting the corresponding surfaces from the 2D views.",
+      "Inspect the 3D model while highlighting the corresponding surfaces from the 2D views",
   },
 ];
 
@@ -64,7 +64,7 @@ export default function TechnicalDrawingPage() {
             </div>
           </div>
           <p className="mt-5 max-w-3xl text-base leading-8 text-muted sm:text-lg">
-            This module extends the technical-drawing section with local interactive tools for view correspondence, projection construction, and 3D perspective interpretation while preserving this project&apos;s layout and visual language.
+            This module extends the technical-drawing section with local interactive tools for view correspondence, projection construction, and 3D perspective interpretation while preserving this project&apos;s layout and visual language
           </p>
         </div>
       </section>
@@ -73,7 +73,7 @@ export default function TechnicalDrawingPage() {
 
       <SectionWrapper
         title="Interactive Modules"
-        subtitle="Choose a technical-drawing activity to open the local visualization tools."
+        subtitle="Choose a technical-drawing activity to open the local visualization tools"
       >
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {interactiveModules.map((item) => (
@@ -91,7 +91,7 @@ export default function TechnicalDrawingPage() {
 
       <SectionWrapper
         title="Learning Focus"
-        subtitle="Core competencies developed through the interactive drawing tools."
+        subtitle="Core competencies developed through the interactive drawing tools"
       >
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {focusAreas.map((area) => (

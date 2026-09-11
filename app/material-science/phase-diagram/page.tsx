@@ -6,19 +6,19 @@ const tools = [
     title: "Total Solubility",
     href: "/material-science/phase-diagram/total-solubility",
     description:
-      "Launch the interactive binary phase-diagram tool and inspect complete mutual solubility behavior.",
+      "Launch the interactive binary phase-diagram tool and inspect complete mutual solubility behavior",
   },
   {
     title: "Partial Solubility",
     href: "/material-science/phase-diagram/partial-solubility",
     description:
-      "Examine limited solubility regions, mixed-phase fields, and temperature-dependent behavior.",
+      "Examine limited solubility regions, mixed-phase fields, and temperature-dependent behavior",
   },
   {
     title: "Insolubility",
     href: "/material-science/phase-diagram/insolubility",
     description:
-      "Review binary systems that remain phase-separated across the composition range.",
+      "Review binary systems that remain phase-separated across the composition range",
   },
 ];
 
@@ -37,14 +37,14 @@ export default function PhaseDiagramPage() {
           </Link>
           <h1 className="font-heading text-4xl font-bold text-text sm:text-5xl">Phase Diagram</h1>
           <p className="mt-4 max-w-3xl text-base leading-8 text-muted sm:text-lg">
-            Open the interactive phase-diagram activities adapted from the virtual learning platform and embedded inside this project&apos;s material-science module.
+            Open the interactive phase-diagram activities adapted from the virtual learning platform and embedded inside this project&apos;s material-science module
           </p>
         </div>
       </section>
 
       <SectionWrapper
         title="Interactive Views"
-        subtitle="Select a phase-diagram mode to launch the embedded tool."
+        subtitle="Select a phase-diagram mode to launch the embedded tool"
       >
         <div className="grid gap-5 md:grid-cols-3">
           {tools.map((tool) => (

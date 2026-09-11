@@ -19,7 +19,7 @@ export default function ClinchingPage() {
           </Link>
           <h1 className="font-heading text-3xl font-semibold text-text sm:text-4xl">Clinching Simulator</h1>
           <p className="mt-3 max-w-3xl text-sm leading-7 text-muted sm:text-base">
-            Explore how process parameters affect clinching outcomes and compare simulation videos side by side.
+            Explore how process parameters affect clinching outcomes and compare simulation videos side by side
           </p>
         </div>
       </section>

@@ -9,19 +9,19 @@ const interactiveModules = [
     title: "Clinching Simulator",
     href: "/joining-forming/clinching",
     description:
-      "Interactive parameter-to-video exploration for die depth, clearance, inclination, and other clinching controls.",
+      "Interactive parameter-to-video exploration for die depth, clearance, inclination, and other clinching controls",
   },
   {
     title: "Tube Fit Joining Simulator",
     href: "/joining-forming/tube-fit",
     description:
-      "Adjust radial interference, wall thickness, expansion ratio, and material yield strength to estimate pull-out force and joint quality for forming-based tube connections.",
+      "Adjust radial interference, wall thickness, expansion ratio, and material yield strength to estimate pull-out force and joint quality for forming-based tube connections",
   },
   {
     title: "SPR Simulator",
     href: "/joining-forming/spr",
     description:
-      "Tune rivet length, die depth, die cavity diameter, rivet yield strength, and leg thickness to see their effect on interlock, bottom thickness, and joining force in self-piercing riveted joints.",
+      "Tune rivet length, die depth, die cavity diameter, rivet yield strength, and leg thickness to see their effect on interlock, bottom thickness, and joining force in self-piercing riveted joints",
   },
 ];
 
@@ -58,14 +58,14 @@ export default function JoiningFormingPage() {
             </div>
           </div>
           <p className="mt-5 max-w-3xl text-base leading-8 text-muted sm:text-lg">
-            This module extends joining-by-forming with local interactive applications and keeps the same shell, navigation, and style used across this project.
+            This module extends joining-by-forming with local interactive applications and keeps the same shell, navigation, and style used across this project
           </p>
         </div>
       </section>
 
       <ModuleLearningPath path={learningPaths["joining-forming"]} />
 
-      <SectionWrapper title="Interactive Modules" subtitle="Choose a forming-based application to open local simulations.">
+      <SectionWrapper title="Interactive Modules" subtitle="Choose a forming-based application to open local simulations">
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {interactiveModules.map((item) => (
             <Link
@@ -80,7 +80,7 @@ export default function JoiningFormingPage() {
         </div>
       </SectionWrapper>
 
-      <SectionWrapper title="Learning Focus" subtitle="Key skills developed by the joining-by-forming interactive content.">
+      <SectionWrapper title="Learning Focus" subtitle="Key skills developed by the joining-by-forming interactive content">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {focusAreas.map((area) => (
             <article

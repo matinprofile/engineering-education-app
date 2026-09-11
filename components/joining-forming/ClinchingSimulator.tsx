@@ -9,10 +9,12 @@ type Parameter = {
   max: number;
   optimum: number;
   unit: string;
+  /** True when this value is held constant in the dataset (not independently swept) — no min/max video pair exists. */
+  fixed?: boolean;
 };
 
 const hotspots = [
-  { id: "Rp", x: 330, y: 210 },
+  { id: "rp", x: 330, y: 210 },
   { id: "rc", x: 150, y: 270 },
   { id: "C", x: 165, y: 100 },
   { id: "Pi", x: 390, y: 130 },
@@ -22,18 +24,18 @@ const hotspots = [
 const parameters: Parameter[] = [
   { label: "Cavity Radius", key: "rc", min: 0.8, max: 1, optimum: 1, unit: "mm" },
   { label: "Die Depth", key: "Dd", min: 1.8, max: 2.4, optimum: 2, unit: "mm" },
-  { label: "Die Radius", key: "Rd", min: 0, max: 0, optimum: 7, unit: "mm" },
+  { label: "Die Radius", key: "Rd", min: 0, max: 0, optimum: 7, unit: "mm", fixed: true },
   { label: "Clearance", key: "C", min: 1.8, max: 2.2, optimum: 2, unit: "mm" },
-  { label: "Punch Radius", key: "Rp", min: 0, max: 0, optimum: 5, unit: "mm" },
-  { label: "Punch Fillet Radius", key: "rp", min: 0.5, max: 1, optimum: 1, unit: "mm" },
-  { label: "Punch Inclination", key: "Pi", min: 0, max: 5, optimum: 1.5, unit: "deg" },
+  { label: "Punch Radius", key: "Rp", min: 0, max: 0, optimum: 5, unit: "mm", fixed: true },
+  { label: "Punch Fillet Radius", key: "rp", min: 0.5, max: 1.5, optimum: 0.5, unit: "mm" },
+  { label: "Punch Inclination", key: "Pi", min: 0, max: 10, optimum: 0, unit: "deg" },
 ];
 
 const descriptions: Record<string, string> = {
   Dd: "Die Depth: The depth of the die cavity, influencing material flow.",
-  C: "Clearance: Gap between punch and die affecting clinch formation.",
+  C: "Clearance (C = Rd − Rp): Gap between punch and die, defined as the die radius minus the punch radius, affecting clinch formation.",
   Pi: "Punch Inclination: Angle of punch relative to vertical axis.",
-  Rp: "Punch Fillet Radius: Radius at punch corner controlling flow.",
+  rp: "Punch Fillet Radius: Radius at the punch corner controlling material flow into the clinch.",
   rc: "Cavity Radius: Radius of cavity.",
 };
 
@@ -48,7 +50,8 @@ export function ClinchingSimulator() {
   );
 
   const videoKey = `${selectedParam ?? "none"}-${selectedVideo}`;
-  const videoUrl = selectedParam ? `/videos/${selectedParam.toLowerCase()}_${selectedVideo}.mp4` : undefined;
+  const videoUrl =
+    selectedParam && !activeParam?.fixed ? `/videos/${selectedParam.toLowerCase()}_${selectedVideo}.mp4` : undefined;
   const activeDescription = selectedParam ? descriptions[selectedParam] : "";
 
   useEffect(() => {
@@ -90,7 +93,7 @@ export function ClinchingSimulator() {
     <div className="space-y-10">
       <section className="grid gap-8 xl:grid-cols-[minmax(0,520px)_minmax(0,1fr)]">
         <div className="relative">
-          <img src="/clinching.png" alt="Clinching geometry with interactive parameter hotspots" className="w-full rounded-2xl border border-[color:var(--border)] bg-white shadow-[0_16px_40px_rgba(48,54,44,0.08)]" />
+          <img src="/clinching.jpg" alt="Clinching geometry with interactive parameter hotspots" className="w-full rounded-2xl border border-[color:var(--border)] bg-white shadow-[0_16px_40px_rgba(48,54,44,0.08)]" />
 
           {hotspots.map((spot) => (
             <button
@@ -109,30 +112,39 @@ export function ClinchingSimulator() {
               <h3 className="font-heading text-lg font-semibold text-text">Parameter Definition ({activeParam?.key})</h3>
               <p className="mt-2 text-sm leading-7 text-muted">{activeDescription}</p>
 
-              <div className="mt-4 flex flex-wrap gap-3">
-                <button
-                  type="button"
-                  className={`rounded-lg border px-4 py-2 text-sm font-medium ${selectedVideo === "min" ? "border-accent bg-accent text-white" : "border-[color:var(--border)] bg-white text-text"}`}
-                  onClick={() => setSelectedVideo("min")}
-                >
-                  Min ({activeParam?.min} {activeParam?.unit})
-                </button>
-                <button
-                  type="button"
-                  className={`rounded-lg border px-4 py-2 text-sm font-medium ${selectedVideo === "max" ? "border-accent bg-accent text-white" : "border-[color:var(--border)] bg-white text-text"}`}
-                  onClick={() => setSelectedVideo("max")}
-                >
-                  Max ({activeParam?.max} {activeParam?.unit})
-                </button>
-              </div>
+              {activeParam?.fixed ? (
+                <p className="mt-4 text-sm font-medium text-muted">
+                  Fixed at {activeParam.optimum} {activeParam.unit} in this dataset — not independently swept, no
+                  comparison video available.
+                </p>
+              ) : (
+                <>
+                  <div className="mt-4 flex flex-wrap gap-3">
+                    <button
+                      type="button"
+                      className={`rounded-lg border px-4 py-2 text-sm font-medium ${selectedVideo === "min" ? "border-accent bg-accent text-white" : "border-[color:var(--border)] bg-white text-text"}`}
+                      onClick={() => setSelectedVideo("min")}
+                    >
+                      Min ({activeParam?.min} {activeParam?.unit})
+                    </button>
+                    <button
+                      type="button"
+                      className={`rounded-lg border px-4 py-2 text-sm font-medium ${selectedVideo === "max" ? "border-accent bg-accent text-white" : "border-[color:var(--border)] bg-white text-text"}`}
+                      onClick={() => setSelectedVideo("max")}
+                    >
+                      Max ({activeParam?.max} {activeParam?.unit})
+                    </button>
+                  </div>
 
-              <button
-                type="button"
-                onClick={addToCompare}
-                className="mt-4 rounded-lg border border-accent bg-accent px-4 py-2 text-sm font-semibold text-white"
-              >
-                Add to Compare
-              </button>
+                  <button
+                    type="button"
+                    onClick={addToCompare}
+                    className="mt-4 rounded-lg border border-accent bg-accent px-4 py-2 text-sm font-semibold text-white"
+                  >
+                    Add to Compare
+                  </button>
+                </>
+              )}
             </div>
           ) : null}
         </div>

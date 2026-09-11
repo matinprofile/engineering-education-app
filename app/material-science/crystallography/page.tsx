@@ -6,13 +6,13 @@ const tools = [
     title: "Structure",
     href: "/material-science/crystallography/structure",
     description:
-      "Explore crystal structures, unit cells, and lattice geometry in the embedded visualization tool.",
+      "Explore crystal structures, unit cells, and lattice geometry in the embedded visualization tool",
   },
   {
     title: "Miller Indices",
     href: "/material-science/crystallography/miller",
     description:
-      "Study plane notation, intercepts, and orientation analysis with the Miller indices viewer.",
+      "Study plane notation, intercepts, and orientation analysis with the Miller indices viewer",
   },
 ];
 
@@ -31,14 +31,14 @@ export default function CrystallographyPage() {
           </Link>
           <h1 className="font-heading text-4xl font-bold text-text sm:text-5xl">Crystallography</h1>
           <p className="mt-4 max-w-3xl text-base leading-8 text-muted sm:text-lg">
-            Launch the crystallography tools inside the current project template without bringing over the sibling app&apos;s layout or multilingual shell.
+            Launch the crystallography tools inside the current project template without bringing over the sibling app&apos;s layout or multilingual shell
           </p>
         </div>
       </section>
 
       <SectionWrapper
         title="Interactive Views"
-        subtitle="Select a crystallography activity to open the embedded tool."
+        subtitle="Select a crystallography activity to open the embedded tool"
       >
         <div className="grid gap-5 md:grid-cols-2">
           {tools.map((tool) => (

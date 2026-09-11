@@ -26,7 +26,7 @@ export default function TechnicalDrawingQuizPage() {
             Module Quiz — Technical Drawing
           </h1>
           <p className="mt-3 max-w-3xl text-sm leading-7 text-muted sm:text-base">
-            Test your knowledge of orthographic projection, hidden lines, section views, isometric drawing, and perspective.
+            Test your knowledge of orthographic projection, hidden lines, section views, isometric drawing, and perspective
           </p>
         </div>
       </section>

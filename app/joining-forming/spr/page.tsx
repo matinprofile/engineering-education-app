@@ -24,7 +24,7 @@ export default function SPRPage() {
           </Link>
           <h1 className="font-heading text-3xl font-semibold text-text sm:text-4xl">SPR (Self-Piercing Riveting) Simulator</h1>
           <p className="mt-3 max-w-3xl text-sm leading-7 text-muted sm:text-base">
-            Explore how rivet length, die depth, die cavity diameter, rivet material yield strength, and rivet leg thickness affect interlock, remaining bottom thickness, and joining force in self-piercing riveted joints.
+            Explore how rivet length, die depth, die cavity diameter, rivet material yield strength, and rivet leg thickness affect interlock, remaining bottom thickness, and joining force in self-piercing riveted joints
           </p>
         </div>
       </section>
