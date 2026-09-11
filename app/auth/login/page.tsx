@@ -45,30 +45,35 @@ function LoginForm() {
       return;
     }
 
-    if (mode === "login") {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) {
-        setError(error.message);
-        setLoading(false);
+    try {
+      if (mode === "login") {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) {
+          setError(error.message);
+          setLoading(false);
+        } else {
+          router.push(next);
+          router.refresh();
+        }
       } else {
-        router.push(next);
-        router.refresh();
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: { full_name: name },
+          },
+        });
+        if (error) {
+          setError(error.message);
+          setLoading(false);
+        } else {
+          setSignupDone(true);
+          setLoading(false);
+        }
       }
-    } else {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: { full_name: name },
-        },
-      });
-      if (error) {
-        setError(error.message);
-        setLoading(false);
-      } else {
-        setSignupDone(true);
-        setLoading(false);
-      }
+    } catch {
+      setError("Network error — please check your connection and try again.");
+      setLoading(false);
     }
   }
 
