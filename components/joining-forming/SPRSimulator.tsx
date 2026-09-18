@@ -20,17 +20,17 @@ type Parameter = {
   cases: Case[];
 };
 
-// Hotspot positions as % of /spr.png (1123x714), measured directly against a
-// 5%-grid overlay of the schematic so each marker sits on its labeled
-// dimension in the "Before Joining" panel. Marker text uses the exact symbol
-// from SPR.xlsx column C (L, ld, Dc, t); the yield-strength row has no
-// column-C symbol ("-" in the sheet), so it keeps a descriptive "σy" label.
+// Hotspot positions as % of /spr-schema.png (1123x777), measured directly
+// against a pixel-grid overlay of the schematic so each marker sits on its
+// labeled dimension in the "Before Joining" panel. Marker text uses the exact
+// symbol from SPR.xlsx column C (L, ld, Dc, t); the yield-strength row has no
+// column-C symbol ("-" in the sheet), so it keeps a descriptive "Ys" label.
 const hotspots: { id: string; x: number; y: number; label: string }[] = [
-  { id: "l",  x: 13.5, y: 18.0, label: "L" },  // L  — blank holder / rivet length arrow
-  { id: "dd", x: 9.0 , y: 39.5, label: "ld" }, // ld — die depth arrow
-  { id: "dc", x: 30.0, y: 39.5, label: "Dc" }, // Dc — die cavity diameter arrow
-  { id: "ys", x: 33.0, y: 15.5, label: "Ys" }, // Rivet body — rivet material yield strength
-  { id: "t",  x: 41.5, y: 19.0, label: "t" },  // t  — rivet leg thickness arrow
+  { id: "l",  x: 17.19, y: 27.41, label: "L" },  // L  — blank holder / rivet length arrow
+  { id: "dd", x: 11.58, y: 87.90, label: "ld" }, // ld — die depth arrow
+  { id: "dc", x: 38.29, y: 87.13, label: "Dc" }, // Dc — die cavity diameter arrow
+  { id: "ys", x: 40.52, y: 15.44, label: "Ys" }, // Rivet body — rivet material yield strength
+  { id: "t",  x: 34.55, y: 26.77, label: "t" },  // t  — rivet leg thickness arrow
 ];
 
 const parameters: Parameter[] = [
@@ -146,29 +146,31 @@ export function SPRSimulator() {
     <div className="space-y-10">
       <section className="grid gap-8 xl:grid-cols-[minmax(0,520px)_minmax(0,1fr)]">
         {/* Schematic + controls */}
-        <div className="relative">
-          <img
-            src="/spr.png"
-            alt="Self-piercing rivet (SPR) joint cross-section, before and after joining, with interactive parameter hotspots"
-            className="w-full rounded-2xl border border-[color:var(--border)] bg-white shadow-[0_16px_40px_rgba(48,54,44,0.08)]"
-          />
+        <div>
+          <div className="relative">
+            <img
+              src="/spr-schema.png"
+              alt="Self-piercing rivet (SPR) joint cross-section, before and after joining, with interactive parameter hotspots"
+              className="w-full rounded-2xl border border-[color:var(--border)] bg-white shadow-[0_16px_40px_rgba(48,54,44,0.08)]"
+            />
 
-          {hotspots.map((spot) => {
-            const param = parameters.find((p) => p.key === spot.id);
-            const isActive = spot.id === selectedParamKey;
-            return (
-              <button
-                key={spot.id}
-                type="button"
-                title={param?.label}
-                className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-full border border-white px-2 py-1 text-[10px] font-bold text-white shadow transition-colors ${isActive ? "bg-emerald-600" : "bg-accent/90 hover:bg-accent"}`}
-                style={{ left: `${spot.x}%`, top: `${spot.y}%` }}
-                onClick={() => selectParam(spot.id)}
-              >
-                {spot.label}
-              </button>
-            );
-          })}
+            {hotspots.map((spot) => {
+              const param = parameters.find((p) => p.key === spot.id);
+              const isActive = spot.id === selectedParamKey;
+              return (
+                <button
+                  key={spot.id}
+                  type="button"
+                  title={param?.label}
+                  className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-full border border-white px-2 py-1 text-[10px] font-bold text-white shadow transition-colors ${isActive ? "bg-emerald-600" : "bg-accent/90 hover:bg-accent"}`}
+                  style={{ left: `${spot.x}%`, top: `${spot.y}%` }}
+                  onClick={() => selectParam(spot.id)}
+                >
+                  {spot.label}
+                </button>
+              );
+            })}
+          </div>
 
           {activeParam ? (
             <div className="mt-6 rounded-xl border border-[color:var(--border)] bg-white p-5">
