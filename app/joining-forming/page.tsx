@@ -25,6 +25,21 @@ const interactiveModules = [
   },
 ];
 
+const videoGuides = [
+  {
+    title: "Specimen Preparation Guide",
+    href: "/joining-forming/specimen-prep",
+    description:
+      "Follow SPR specimen positioning, joining, and tensile testing through the supplied process videos.",
+  },
+  {
+    title: "Measurements Guide",
+    href: "/joining-forming/measurements",
+    description:
+      "Set up the specimen and electrical measurements, configure acquisition, and record test data.",
+  },
+];
+
 const focusAreas = [
   "Die and punch geometry influence",
   "Material flow sensitivity to parameter bounds",
@@ -58,7 +73,7 @@ export default function JoiningFormingPage() {
             </div>
           </div>
           <p className="mt-5 max-w-3xl text-base leading-8 text-muted sm:text-lg">
-            This module extends joining-by-forming with local interactive applications and keeps the same shell, navigation, and style used across this project
+            Follow the joining by forming path — from clinching mechanics and self-piercing riveting through seam folding to structural joint validation — using interactive simulation and calculation tools.
           </p>
         </div>
       </section>
@@ -75,6 +90,21 @@ export default function JoiningFormingPage() {
             >
               <h2 className="font-heading text-2xl font-semibold text-text">{item.title}</h2>
               <p className="mt-3 text-sm leading-7 text-muted">{item.description}</p>
+            </Link>
+          ))}
+        </div>
+      </SectionWrapper>
+
+      <SectionWrapper title="Video Guides" subtitle="Watch the specimen preparation and measurement procedures">
+        <div className="grid gap-5 md:grid-cols-2">
+          {videoGuides.map((guide) => (
+            <Link
+              key={guide.href}
+              href={guide.href}
+              className="rounded-xl border border-[color:var(--border)] bg-white p-6 transition-colors hover:border-accent/50 hover:bg-primary/30"
+            >
+              <h2 className="font-heading text-xl font-semibold text-text">{guide.title}</h2>
+              <p className="mt-3 text-sm leading-7 text-muted">{guide.description}</p>
             </Link>
           ))}
         </div>
