@@ -58,6 +58,8 @@ export function JoiningFormingVideoPlayer({
                   key={currentStep.videoUrl}
                   className="absolute inset-0 h-full w-full"
                   controls
+                  autoPlay
+                  muted
                   playsInline
                   preload="metadata"
                   onError={() => setFailedVideoUrl(currentStep.videoUrl)}

@@ -82,7 +82,7 @@ export function SLJManufacturingGuide() {
               <div className="relative w-full rounded-lg overflow-hidden shadow-lg border-4 border-slate-200 bg-slate-900" style={{ paddingBottom: "56.25%" }}>
                 {step.videoUrl ? (
                   <video ref={videoRef} key={step.videoUrl}
-                    className="absolute top-0 left-0 w-full h-full object-cover" controls autoPlay muted>
+                    className="absolute top-0 left-0 w-full h-full object-cover" controls autoPlay muted playsInline>
                     <source src={step.videoUrl} type="video/mp4" />
                   </video>
                 ) : (
