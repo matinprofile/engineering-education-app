@@ -50,17 +50,6 @@ const TOOL_ICONS: Record<string, React.ReactNode> = {
 
 const CATEGORIES = [
   {
-    id: "surface-preparation",
-    title: "Surface Preparation",
-    description: "Simulate and evaluate surface treatment processes before bonding",
-    icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M3 21h18M3 10h18M3 7l9-4 9 4M4 10v11M20 10v11M8 10v11M12 10v11M16 10v11" />
-      </svg>
-    ),
-    slugs: ["surfaceprep-v2", "plasma-treatment"],
-  },
-  {
     id: "joint-manufacturing",
     title: "Joint Manufacturing & Design",
     description: "Step through joint fabrication workflows, design guidelines, and process videos",
