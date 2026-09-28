@@ -15,7 +15,6 @@ export const learningPaths: Record<string, LearningPath> = {
     module: "adhesive-bonding",
     title: "Adhesive Bonding",
     steps: [
-      { title: "Surface Preparation", href: "/adhesive-bonding/apps/surfaceprep-v2", duration: "15 min" },
       { title: "Plasma Treatment", href: "/adhesive-bonding/apps/plasma-treatment", duration: "10 min" },
       { title: "Adhesive Joint Tutorial", href: "/adhesive-bonding/apps/slj-maker", duration: "20 min" },
       { title: "SLJ Manufacturing Guide", href: "/adhesive-bonding/apps/slj-manufacturing-guide", duration: "10 min" },

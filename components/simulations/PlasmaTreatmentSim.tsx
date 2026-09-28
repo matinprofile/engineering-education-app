@@ -7,8 +7,8 @@ import { Zap, Activity, Microscope } from "lucide-react";
 const GRID = 64;
 const BASE_ENERGY = 32;
 const MAX_ENERGY = 72;
-const DECAY = 0.0015;
-const TREAT_RATE = 0.13;
+const DECAY = 0.00015;
+const TREAT_RATE = 2.5;
 const PLASMA_R = 3;
 
 export function PlasmaTreatmentSim() {
@@ -297,54 +297,59 @@ export function PlasmaTreatmentSim() {
               <Microscope className="w-4 h-4" /> Surface Chemistry
             </h3>
             <div className="flex-grow bg-slate-900 rounded-lg p-4 flex flex-col items-center justify-center border border-slate-700">
-              {!isFunctionalized ? (
-                <div className="flex items-center gap-1 opacity-50 grayscale mb-3">
-                  {[0, 1, 2].map((i) => (
-                    <div key={i} className="flex flex-col items-center">
-                      <div className="w-2 h-2 rounded-full bg-white mb-1" />
-                      <div className="w-6 h-6 rounded-full bg-slate-800 border-2 border-slate-500 flex items-center justify-center font-bold text-[10px]">C</div>
-                      <div className="w-2 h-2 rounded-full bg-white mt-1" />
-                      {i < 2 && <div className="absolute w-4 h-1 bg-slate-600 translate-x-5" />}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="flex items-center gap-2 animate-pulse mb-3">
+              <div className="relative flex h-40 w-full items-center justify-center">
+                {!isFunctionalized ? (
+                  <div className="flex items-center gap-1 opacity-50 grayscale">
+                    {[0, 1, 2].map((i) => (
+                      <div key={i} className="flex items-center">
+                        <div className="flex flex-col items-center">
+                          <div className="w-2 h-2 rounded-full bg-white mb-1" />
+                          <div className="w-6 h-6 rounded-full bg-slate-800 border-2 border-slate-500 flex items-center justify-center font-bold text-[10px]">C</div>
+                          <div className="w-2 h-2 rounded-full bg-white mt-1" />
+                        </div>
+                        {i < 2 && <div className="w-4 h-1 bg-slate-600" />}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1 animate-pulse">
                   <div className="flex flex-col items-center">
                     <div className="w-2 h-2 rounded-full bg-white mb-1" />
                     <div className="w-6 h-6 rounded-full bg-slate-800 border-2 border-slate-500 flex items-center justify-center font-bold text-[10px]">C</div>
                     <div className="w-2 h-2 rounded-full bg-white mt-1" />
                   </div>
-                  <div className="w-4 h-0.5 bg-slate-600" />
-                  <div className="flex flex-col items-center relative">
-                    <div className="flex flex-col items-center animate-bounce absolute -top-7">
+                    <div className="w-4 h-1 bg-slate-600" />
+                    <div className="relative flex flex-col items-center">
+                      <div className="absolute -top-6 flex flex-col items-center animate-bounce">
                       <div className="w-5 h-5 rounded-full bg-red-600 border border-red-400 flex items-center justify-center text-[8px] font-bold">O</div>
                       <div className="h-3 w-0.5 bg-red-500" />
                     </div>
-                    <div className="w-2 h-2 rounded-full bg-white mb-1 mt-7" />
                     <div className="w-6 h-6 rounded-full bg-slate-800 border-2 border-green-500 flex items-center justify-center font-bold text-[10px] text-green-400">C*</div>
                     <div className="w-2 h-2 rounded-full bg-white mt-1" />
                   </div>
-                  <div className="w-4 h-0.5 bg-slate-600" />
-                  <div className="flex flex-col items-center relative">
+                    <div className="w-4 h-1 bg-slate-600" />
+                    <div className="relative flex flex-col items-center">
                     <div className="w-2 h-2 rounded-full bg-white mb-1" />
                     <div className="w-6 h-6 rounded-full bg-slate-800 border-2 border-green-500 flex items-center justify-center font-bold text-[10px] text-green-400">C*</div>
-                    <div className="flex flex-col items-center mt-1">
+                      <div className="absolute -bottom-6 flex flex-col items-center">
                       <div className="h-3 w-0.5 bg-red-500" />
                       <div className="flex items-center bg-red-900/50 rounded px-1 border border-red-500">
-                        <span className="w-2 h-2 bg-red-600 rounded-full mr-1 inline-block" />
+                          <span className="w-2 h-2 bg-red-600 rounded-full mr-1" />
                         <span className="text-[8px]">OH</span>
                       </div>
                     </div>
                   </div>
                 </div>
-              )}
-              <h4 className={`text-base font-bold ${isFunctionalized ? "text-green-400" : "text-slate-400"}`}>
-                {isFunctionalized ? "Functionalized Surface" : "Inert Polymer"}
-              </h4>
-              <p className="text-xs text-slate-400 mt-1 text-center">
-                {isFunctionalized ? "Bombardment creates radicals. Oxygen binds, forming C=O and –OH groups." : "Non-polar surface — only C–H and C–C bonds. Low adhesion."}
-              </p>
+                )}
+              </div>
+              <div className="mt-4 text-center">
+                <h4 className={`text-base font-bold ${isFunctionalized ? "text-green-400" : "text-slate-400"}`}>
+                  {isFunctionalized ? "Functionalized Surface" : "Inert Polymer"}
+                </h4>
+                <p className="text-xs text-slate-400 mt-1">
+                  {isFunctionalized ? "Bombardment creates radicals. Oxygen binds, forming C=O and –OH groups." : "Non-polar surface — only C–H and C–C bonds. Low adhesion."}
+                </p>
+              </div>
             </div>
             <div className="mt-3 grid grid-cols-2 gap-2 text-[10px] text-slate-500 text-center">
               {[["⚪", "Hydrogen"], ["⚫", "Carbon"], ["🔴", "Oxygen (Plasma)"], ["⚡", "Free Electron"]].map(([icon, name]) => (
